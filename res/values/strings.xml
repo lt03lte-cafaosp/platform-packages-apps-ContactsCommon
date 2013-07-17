@@ -262,12 +262,14 @@
     <!-- Header for the list of all relationships for a contact [CHAR LIMIT=20] -->
     <string name="relationLabelsGroup">Relationship</string>
 
+    <string name="account_sim">SIM Card</string>
     <!-- Header that expands to list all event types when editing an event of a contact
          [CHAR LIMIT=20] -->
     <string name="eventLabelsGroup">Events</string>
 
     <!-- Generic action string for text messaging a contact. Used by AccessibilityService to
          announce the purpose of the view. [CHAR LIMIT=NONE] -->
+    <string name="name_for_sim">Name</string>
     <string name="sms">Text message</string>
 
     <!-- Field title for the full postal address of a contact [CHAR LIMIT=64]-->
