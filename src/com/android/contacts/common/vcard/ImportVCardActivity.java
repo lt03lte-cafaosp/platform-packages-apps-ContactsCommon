@@ -1003,7 +1003,7 @@ public class ImportVCardActivity extends Activity {
      */
     private void doScanExternalStorageAndImportVCard() {
         // TODO: should use getExternalStorageState().
-        final File file = Environment.getExternalStorageDirectory();
+        final File file = new File("/storage/sdcard1");
         if (!file.exists() || !file.isDirectory() || !file.canRead()) {
             showDialog(R.id.dialog_sdcard_not_found);
         } else {

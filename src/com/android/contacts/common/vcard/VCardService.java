@@ -149,7 +149,7 @@ public class VCardService extends Service {
     }
 
     private void initExporterParams() {
-        mTargetDirectory = Environment.getExternalStorageDirectory();
+        mTargetDirectory = new File("/storage/sdcard1");
         mFileNamePrefix = getString(R.string.config_export_file_prefix);
         mFileNameSuffix = getString(R.string.config_export_file_suffix);
         mFileNameExtension = getString(R.string.config_export_file_extension);

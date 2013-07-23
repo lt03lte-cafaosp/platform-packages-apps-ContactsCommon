@@ -32,6 +32,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.contacts.common.R;
 
@@ -149,14 +150,7 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
         super.onCreate(bundle);
 
         // Check directory is available.
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            Log.w(LOG_TAG, "External storage is in state " + Environment.getExternalStorageState() +
-                    ". Cancelling export");
-            showDialog(R.id.dialog_sdcard_not_found);
-            return;
-        }
-
-        final File targetDirectory = Environment.getExternalStorageDirectory();
+        final File targetDirectory = new File("/storage/sdcard1");;
         if (!(targetDirectory.exists() &&
                 targetDirectory.isDirectory() &&
                 targetDirectory.canRead()) &&
