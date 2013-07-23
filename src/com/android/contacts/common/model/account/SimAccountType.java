@@ -91,7 +91,6 @@ public class SimAccountType extends BaseAccountType{
 
         kind.iconAltRes = R.drawable.ic_text_holo_light;
         kind.typeOverallMax = 2;
-        //kind.isList = true;
         kind.typeColumn = Phone.TYPE;
         kind.typeList = Lists.newArrayList();
         kind.typeList.add(buildPhoneType(Phone.TYPE_MOBILE));
