@@ -72,7 +72,7 @@ public class PhoneAccountType extends BaseAccountType{
             addDataKindNote(context);
             addDataKindWebsite(context);
             //addDataKindGroupMembership(context);
-            //addDataKindLocalGroups(context);
+            addDataKindLocalGroups(context);
 
             mIsInitialized = true;
         } catch (DefinitionException e) {
