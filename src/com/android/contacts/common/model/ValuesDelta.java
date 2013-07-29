@@ -37,8 +37,8 @@ import java.util.Set;
  * or delete operations based on a "before" {@link Entity} snapshot.
  */
 public class ValuesDelta implements Parcelable {
-    protected ContentValues mBefore;
-    protected ContentValues mAfter;
+    public ContentValues mBefore;
+    public ContentValues mAfter;
     protected String mIdColumn = BaseColumns._ID;
     private boolean mFromTemplate;
 
