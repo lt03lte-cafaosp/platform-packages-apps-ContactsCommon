@@ -730,4 +730,5 @@ a        ren't members of any other group. [CHAR LIMIT=25] -->
 
     <string name="select_sim">Select SIM</string>
 
+    <string name="label_groups">Group</string>
 </resources>
