@@ -242,4 +242,21 @@
     <string name="description_send_message" msgid="2630211225573754774">"向<xliff:g id="NAME">%1$s</xliff:g>发短信"</string>
     <string name="description_dial_phone_number" msgid="7315580540586351853">"拨打<xliff:g id="NAME">%1$s</xliff:g>的电话"</string>
     <string name="label_groups">"群组"</string>
+    <string name="exporting">"正在导出"</string>
+    <string name="reading_vcard_files">读取VCARD文件</string>
+    <string name="progressdialog_cancel">取消</string>
+    <string name="export_failed">"导出失败"</string>
+    <string name="sim_card_full">"发生错误，SIM卡已满。"</string>
+    <string name="export_finished">"导出结束"</string>
+    <string name="tag_too_long">"发生错误，联系人姓名过长。"</string>
+    <string name="export_cancelled">导出操作被取消，<xliff:g id="insertCount">%s</xliff:g>条成功导出</string>
+    <string name="import_from_sim_select">"选择SIM卡进行导入"</string>
+    <string name="no_sdcard_title" product="nosdcard">"存储设备不存在"</string>
+    <string name="no_sdcard_title" product="default">"无 SD 卡"</string>
+    <string name="deleteConfirmation_title">"要删除联系人吗？"</string>
+    <string name="deleteConfirmation">"将会删除此联系人。"</string>
+    <string name="readOnlyContactDeleteConfirmation">"该联系人的信息中包含来自多个帐户的信息。
+        来自只读帐户的信息将在您的联系人列表中隐藏，但不会删除。"</string>
+    <string name="readOnlyContactWarning">"您无法删除只读帐户中的联系人，但可以在联系人列表中将他们隐藏。"</string>
+    <string name="multipleContactDeleteConfirmation">"删除该联系人将会删除多个帐户中的信息。"</string>
 </resources>
