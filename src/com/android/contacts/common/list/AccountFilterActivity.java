@@ -113,7 +113,7 @@ public class AccountFilterActivity extends Activity implements AdapterView.OnIte
         final ArrayList<ContactListFilter> result = Lists.newArrayList();
         final ArrayList<ContactListFilter> accountFilters = Lists.newArrayList();
         final AccountTypeManager accountTypes = AccountTypeManager.getInstance(context);
-        List<AccountWithDataSet> accounts = accountTypes.getAccounts(false);
+        List<AccountWithDataSet> accounts = accountTypes.getAccounts(true);
         for (AccountWithDataSet account : accounts) {
             AccountType accountType = accountTypes.getAccountType(account.type, account.dataSet);
             if (accountType.isExtension() && !account.hasData(context)) {
