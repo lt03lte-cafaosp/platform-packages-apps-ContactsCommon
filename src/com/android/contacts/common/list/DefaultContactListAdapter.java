@@ -28,11 +28,14 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Directory;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.SearchSnippetColumns;
+import android.telephony.MSimTelephonyManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.View;
 
 import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.preference.ContactsPreferences;
+import com.android.contacts.common.SimContactsConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,8 +111,14 @@ public class DefaultContactListAdapter extends ContactListAdapter {
             if (filter.filterType == ContactListFilter.FILTER_TYPE_ALL_WITHOUT_SIM) {
                 appendUriQueryParameterWithoutSim(loader, RawContacts.ACCOUNT_TYPE,
                         SimAccountType.ACCOUNT_TYPE);
+            } else {
+                // Do not show contacts when SIM card is disabled
+                String disabledSimFilter = getDisabledSimFilter();
+                if (!TextUtils.isEmpty(disabledSimFilter)) {
+                    appendUriQueryParameterWithoutSim(
+                            loader, RawContacts.ACCOUNT_NAME, disabledSimFilter);
+                }
             }
-
         } else {
             configureUri(loader, directoryId, filter);
             loader.setProjection(getProjection(false));
@@ -124,6 +133,30 @@ public class DefaultContactListAdapter extends ContactListAdapter {
         }
 
         loader.setSortOrder(sortOrder);
+    }
+
+    /** get disabled SIM card's name */
+    private String getDisabledSimFilter() {
+        int count = MSimTelephonyManager.getDefault().getPhoneCount();
+        StringBuilder simFilter = new StringBuilder("");
+
+        for (int i = 0; i < count; i++) {
+            if (TelephonyManager.SIM_STATE_READY != MSimTelephonyManager
+                    .getDefault().getSimState(i)) {
+                simFilter.append(getSimAccountName(i) + ',');
+            }
+        }
+
+        return simFilter.toString();
+    }
+
+    /** get SIM card's name according to its subscription*/
+    private String getSimAccountName(int subscription) {
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+            return SimContactsConstants.SIM_NAME + (subscription + 1);
+        } else {
+            return SimContactsConstants.SIM_NAME;
+        }
     }
 
     protected void configureUri(CursorLoader loader, long directoryId, ContactListFilter filter) {
@@ -174,6 +207,12 @@ public class DefaultContactListAdapter extends ContactListAdapter {
             case ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS: {
                 // We have already added directory=0 to the URI, which takes care of this
                 // filter
+                // Do not show contacts in disabled SIM card
+                String disabledSimFilter = getDisabledSimFilter();
+                if (!TextUtils.isEmpty(disabledSimFilter)) {
+                    appendUriQueryParameterWithoutSim(
+                            loader, RawContacts.ACCOUNT_NAME, disabledSimFilter);
+                }
                 break;
             }
             case ContactListFilter.FILTER_TYPE_SINGLE_CONTACT: {
