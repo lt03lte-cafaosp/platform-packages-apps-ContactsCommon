@@ -389,7 +389,7 @@ public class ImportExportDialogFragment extends DialogFragment
         // - just one account -> use the account without asking the user
         // - no account -> use phone-local storage without asking the user
         final AccountTypeManager accountTypes = AccountTypeManager.getInstance(mactiv);
-        final List<AccountWithDataSet> accountList = accountTypes.getAccounts(true);
+        final List<AccountWithDataSet> accountList = accountTypes.getAccounts(false);
         final int size = accountList.size();
         if (size > 1) {
             // Send over to the account selector
