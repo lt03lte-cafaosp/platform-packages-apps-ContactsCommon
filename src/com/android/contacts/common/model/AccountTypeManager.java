@@ -40,6 +40,8 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.ContactsContract;
 import android.provider.Settings;
+import android.telephony.MSimTelephonyManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TimingLogger;
@@ -56,6 +58,7 @@ import com.android.contacts.common.model.account.GoogleAccountType;
 import com.android.contacts.common.model.account.PhoneAccountType;
 import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.model.dataitem.DataKind;
+import com.android.contacts.common.SimContactsConstants;
 import com.android.contacts.common.test.NeededForTesting;
 import com.android.contacts.common.util.Constants;
 import com.google.common.annotations.VisibleForTesting;
@@ -622,6 +625,35 @@ class AccountTypeManagerImpl extends AccountTypeManager
         return contactWritableOnly ? mContactWritableAccounts : mAccounts;
     }
 
+    private boolean isSimStateUnknown(Account account){
+        int subscription = -1;
+        subscription = getSubscription(account.type, account.name);
+
+        if (subscription > -1 && MSimTelephonyManager.getDefault().getSimState(subscription)
+                == TelephonyManager.SIM_STATE_UNKNOWN) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private int getSubscription(String accountType, String accountName){
+        int subscription = -1;
+        if (accountType == null || accountName == null) {
+            return subscription;
+        }
+        if (accountType.equals(SimContactsConstants.ACCOUNT_TYPE_SIM)) {
+            if (accountName.equals(SimContactsConstants.SIM_NAME)) {
+                subscription = SimContactsConstants.SUB_1;
+            } else if (accountName.equals(SimContactsConstants.SIM_NAME_1)) {
+                subscription = SimContactsConstants.SUB_1;
+            } else if (accountName.equals(SimContactsConstants.SIM_NAME_2)) {
+                subscription = SimContactsConstants.SUB_2;
+            }
+        }
+        return subscription;
+    }
+
     private List<AccountWithDataSet> trimAccountByType(final List<AccountWithDataSet> list,
             String... trimAccountTypes) {
         List<AccountWithDataSet> tempList = Lists.newArrayList();
@@ -632,6 +664,10 @@ class AccountTypeManagerImpl extends AccountTypeManager
                         continue outer;
                     }
                 }
+            }
+
+            if (isSimStateUnknown(accountWithDataSet)) {
+                continue outer;
             }
             tempList.add(accountWithDataSet);
         }
