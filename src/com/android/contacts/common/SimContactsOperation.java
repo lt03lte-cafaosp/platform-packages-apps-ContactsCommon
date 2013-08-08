@@ -189,16 +189,12 @@ public class SimContactsOperation {
                     ACCOUNT_PROJECTION,
                     RawContacts.CONTACT_ID + "="
                     + Long.toString(contactId), null, null);
-            if (cursor.moveToFirst()) {
-                // TODO: make sure this is the correct one we are query
-                return cursor;
-            } else {
-                cursor.close();
-                return null;
-            }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         } finally {
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor;
+            }
             if (cursor != null) {
                 cursor.close();
             }
