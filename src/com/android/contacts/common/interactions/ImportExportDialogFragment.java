@@ -131,6 +131,9 @@ public class ImportExportDialogFragment extends DialogFragment
     private static final int MAX_COUNT_UIM_CARD = 500;
     private static final int MAX_COUNT_SIM_CARD = 250;
 
+    // the max count limit of allowing to share contacts
+    private static final int MAX_COUNT_ALLOW_SHARE_CONTACT = 2000;
+
     //this flag is the same as defined in MultiPickContactActivit
     private static final String EXT_NOT_SHOW_SIM_FLAG = "not_sim_show";
     // the max count limit of Chinese code or not
@@ -353,6 +356,16 @@ public class ImportExportDialogFragment extends DialogFragment
             try {
                 if (!cursor.moveToFirst()) {
                     Toast.makeText(getActivity(), R.string.share_error, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // The premise of allowing to share contacts is that the
+                // amount of those contacts which have been selected to
+                // append and will be put into intent as extra data to
+                // deliver is not more that 2000, because too long arguments
+                // will cause TransactionTooLargeException in binder.
+                if (cursor.getCount() > MAX_COUNT_ALLOW_SHARE_CONTACT) {
+                    Toast.makeText(getActivity(), R.string.share_failed, Toast.LENGTH_SHORT).show();
                     return;
                 }
 

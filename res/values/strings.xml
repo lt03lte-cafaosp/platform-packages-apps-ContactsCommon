@@ -666,6 +666,9 @@ a        ren't members of any other group. [CHAR LIMIT=25] -->
     <!-- Toast indicating that sharing a contact has failed. [CHAR LIMIT=NONE]  -->
     <string name="share_error">This contact can\'t be shared.</string>
 
+    <!-- Toast indicating that sharing too many contact has failed. [CHAR LIMIT=NONE]  -->
+    <string name="share_failed">Too many contacts, share failed</string>
+
     <!-- Menu item to search contacts -->
     <string name="menu_search">Search</string>
 
