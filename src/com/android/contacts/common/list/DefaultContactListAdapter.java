@@ -150,7 +150,10 @@ public class DefaultContactListAdapter extends ContactListAdapter {
         StringBuilder simFilter = new StringBuilder("");
 
         for (int i = 0; i < count; i++) {
-            if (TelephonyManager.SIM_STATE_READY != MSimTelephonyManager
+            if (!MSimTelephonyManager.getDefault().hasIccCard(i)) {
+                continue;
+            }
+            if (TelephonyManager.SIM_STATE_UNKNOWN == MSimTelephonyManager
                     .getDefault().getSimState(i)) {
                 simFilter.append(getSimAccountName(i) + ',');
             }
