@@ -66,10 +66,13 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.SimContactsOperation;
 import com.android.contacts.common.SimContactsConstants;
 import com.android.contacts.common.R;
 import com.android.contacts.common.editor.SelectAccountDialogFragment;
+import com.android.contacts.common.list.AccountFilterActivity;
+import com.android.contacts.common.list.ContactListFilter;
 import com.android.contacts.common.model.AccountTypeManager;
 import com.android.contacts.common.model.account.AccountWithDataSet;
 import com.android.contacts.common.util.AccountSelectionUtil;
@@ -94,6 +97,9 @@ public class ImportExportDialogFragment extends DialogFragment
     private static int SIM_ID_INVALID = -1;
     private static int mSelectedSim = SIM_ID_INVALID;
 
+    // This values must be consistent with PeopleActivity.SUBACTIVITY_EXPORT_CONTACTS.
+    public static int SUBACTIVITY_EXPORT_CONTACTS = 100;
+
     private final String[] LOOKUP_PROJECTION = new String[] {
             Contacts.LOOKUP_KEY
     };
@@ -117,7 +123,7 @@ public class ImportExportDialogFragment extends DialogFragment
     // This value needs to start at 7. See {@link PeopleActivity}.
     public static final int SUBACTIVITY_MULTI_PICK_CONTACT = 7;
 
-    private static final String ACTION_MULTI_PICK = "com.android.contacts.action.MULTI_PICK";
+    private static final String ACTION_MULTI_PICK = Intent.ACTION_GET_CONTENT;
 
     // multi-pick contacts which contains email address
     private static final String ACTION_MULTI_PICK_EMAIL =
@@ -249,10 +255,9 @@ public class ImportExportDialogFragment extends DialogFragment
                     }
                     case R.string.export_to_sdcard: {
                         dismissDialog = true;
-                        Intent exportIntent = new Intent(getActivity(), ExportVCardActivity.class);
-                        exportIntent.putExtra(VCardCommonArguments.ARG_CALLING_ACTIVITY,
-                                callingActivity);
-                        getActivity().startActivity(exportIntent);
+                        Intent exportIntent = new Intent(ACTION_MULTI_PICK, Contacts.CONTENT_URI);
+                        getActivity().startActivityForResult(exportIntent,
+                                SUBACTIVITY_EXPORT_CONTACTS);
                         break;
                     }
                     case R.string.share_visible_contacts: {
@@ -505,6 +510,9 @@ public class ImportExportDialogFragment extends DialogFragment
             } else if (which == DialogInterface.BUTTON_POSITIVE) {
                 Intent pickPhoneIntent = new Intent(ACTION_MULTI_PICK, Contacts.CONTENT_URI);
                 // do not show the contacts in SIM card
+                pickPhoneIntent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER,
+                        ContactListFilter
+                                .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
                 pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
                 mactiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
             }
@@ -631,6 +639,7 @@ public class ImportExportDialogFragment extends DialogFragment
         private ProgressDialog mExportProgressDlg;
         private ContentValues mValues = new ContentValues();
         Activity mpeople;
+        private int freeSimCount = 0;
 
         public ExportToSimThread(int type, int subscription, ArrayList<String[]> contactList,
             Activity mpactiv) {
@@ -652,6 +661,7 @@ public class ImportExportDialogFragment extends DialogFragment
             // GoogleSource.createMyContactsIfNotExist(account, getActivity());
             // in case export is stopped, record the count of inserted successfully
             int insertCount = 0;
+            freeSimCount = MoreContactUtils.getSimFreeCount(mpeople,subscription);
 
             mSimContactsOperation = new SimContactsOperation(mpeople);
             Cursor cr = null;
@@ -675,58 +685,125 @@ public class ImportExportDialogFragment extends DialogFragment
                 cr.close();
             }
 
-            boolean canSaveEmail = false;
-
-            // Get the SIM card type according to subscription
-            // wait for frameworks interface add
-            // String CardType = MSimTelephonyManager.getDefault().getCardType(subscription);
-            // // If the SIM card is USIM or CSIM, emails can be saved to the SIM phone book
-            // if (SimContactsConstants.USIM.equals(CardType)
-            //         || SimContactsConstants.CSIM.equals(CardType)) {
-            //     canSaveEmail = true;
-            // }
+            boolean canSaveAnr = MoreContactUtils.canSaveAnr(subscription);
+            boolean canSaveEmail = MoreContactUtils.canSaveEmail(subscription);
 
             String emails = null;
             if (type == TYPE_SELECT) {
                 if (contactList != null) {
                     Iterator<String[]> iterator = contactList.iterator();
-                    Uri result = null;
+                    boolean isSimCardFull = false;
                     while (iterator.hasNext() && !canceled) {
                         String[] contactInfo = iterator.next();
-                        if (canSaveEmail) {
-                            emails = getEmails(mpeople, contactInfo[4]);
-                            // If email list contains several single email
-                            // address, split them and insert an contact for
-                            // each one.
-                            if (!TextUtils.isEmpty(emails)) {
-                                String[] emailArrays = emails.split(",");
-                                for (String email : emailArrays) {
-                                    result = insert(contactInfo[0], contactInfo[1], email,
-                                        subscription);
+                        String name = "";
+                        ArrayList<String> arrayNumber = new ArrayList<String>();
+                        ArrayList<String> arrayEmail = new ArrayList<String>();
+
+                        Uri dataUri = Uri.withAppendedPath(
+                                ContentUris.withAppendedId(Contacts.CONTENT_URI,
+                                        Long.parseLong(contactInfo[1])),
+                                Contacts.Data.CONTENT_DIRECTORY);
+                        final String[] projection = new String[] {
+                                Contacts._ID, Contacts.Data.MIMETYPE, Contacts.Data.DATA1,
+                        };
+                        Cursor c = mpeople.getContentResolver().query(dataUri, projection, null,
+                                null, null);
+
+                        if (c != null && c.moveToFirst()) {
+                            do {
+                                String mimeType = c.getString(1);
+                                if (Phone.CONTENT_ITEM_TYPE.equals(mimeType)) {
+                                    String number = c.getString(2);
+                                    if (!TextUtils.isEmpty(number)) {
+                                        arrayNumber.add(number);
+                                    }
+                                } else if (StructuredName.CONTENT_ITEM_TYPE.equals(mimeType)) {
+                                    name = c.getString(2);
+                                }
+                                if (canSaveEmail) {
+                                    if (Email.CONTENT_ITEM_TYPE.equals(mimeType)) {
+                                        String email = c.getString(2);
+                                        if (!TextUtils.isEmpty(email)) {
+                                            arrayEmail.add(email);
+                                        }
+                                    }
+                                }
+                            } while (c.moveToNext());
+                        }
+                        if (c != null) {
+                            c.close();
+                        }
+
+                        int phoneCountInOneSimContact = 1;
+                        if (canSaveAnr) {
+                            phoneCountInOneSimContact = 2;
+                        }
+                        int nameCount = (name != null && !name.equals("")) ? 1 : 0;
+                        int groupNumCount = (arrayNumber.size() % phoneCountInOneSimContact) != 0 ?
+                                (arrayNumber.size() / phoneCountInOneSimContact + 1)
+                                : (arrayNumber.size() / phoneCountInOneSimContact);
+                        int groupEmailCount = arrayEmail.size();
+
+                        int groupCount = Math.max(groupEmailCount,
+                                Math.max(nameCount, groupNumCount));
+
+                        Uri result = null;
+                        if (DEBUG)
+                            Log.d(TAG, "GroupCount = " + groupCount);
+                        for (int i = 0; i < groupCount; i++) {
+                            if (DEBUG)
+                                Log.d(TAG, "Exported contact freeSimCount = " + freeSimCount);
+                            if (freeSimCount > 0) {
+                                String num = arrayNumber.size() > 0 ? arrayNumber.remove(0) : null;
+                                String anrNum = null;
+                                String email = null;
+                                if (canSaveAnr) {
+                                    anrNum = arrayNumber.size() > 0 ? arrayNumber.remove(0) : null;
+                                }
+                                if (canSaveEmail) {
+                                    email = arrayEmail.size() > 0 ? arrayEmail.remove(0) : null;
+                                }
+
+                                result = MoreContactUtils.insertToCard(mpeople, name, num, email,
+                                        anrNum, subscription);
+
+                                if (DEBUG)
+                                    Log.d(TAG, "result = " + result);
+                                if (null == result) {
+                                    // add toast handler when sim card is full
+                                    if (0 == MoreContactUtils
+                                            .getSimFreeCount(mpeople, subscription)) {
+                                        isSimCardFull = true;
+                                        mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
+                                        break;
+                                    } else {
+                                        mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
+                                        boolean isAirplane = (System.getInt(
+                                                mpeople.getContentResolver(),
+                                                System.AIRPLANE_MODE_ON, 0) != 0);
+                                        if (isAirplane) {
+                                            break;
+                                        } else {
+                                            continue;
+                                        }
+                                    }
+                                } else {
+                                    if (DEBUG)
+                                        Log.d(TAG, "Exported contact [" + name + ", "
+                                                + contactInfo[0] + ", " + contactInfo[1]
+                                                + "] to sub " + subscription);
+                                    insertCount++;
+                                    freeSimCount--;
                                 }
                             } else {
-                                result = insert(contactInfo[0], contactInfo[1], emails,
-                                    subscription);
-                            }
-                        } else {
-                            result = insert(contactInfo[0], contactInfo[1], emails, subscription);
-                        }
-                        if (result == null) {
-                            // add toast handler when sim card is full
-                            if (isSimCardFull(mpeople.getContentResolver())) {
+                                isSimCardFull = true;
                                 mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
                                 break;
-                            } else {
-                                mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
-                                boolean airplane = (System.getInt(mpeople.getContentResolver(),
-                                    System.AIRPLANE_MODE_ON, 0) != 0);
-                                if (airplane) break;
-                                else continue;
                             }
-                        } else {
-                            Log.d(TAG, "Exported contact [" + contactInfo[0] + ", "
-                                    + contactInfo[1] + "] to sub " + subscription);
-                            insertCount++;
+                        }
+
+                        if (isSimCardFull) {
+                            break;
                         }
                     }
                 }
@@ -798,65 +875,6 @@ public class ImportExportDialogFragment extends DialogFragment
                         + "] to slot " + subscription + " failed");
             }
             return result;
-        }
-
-        /**
-         * The Function is added for sim card is full or not.
-         * @param resolver
-         * @return
-         */
-        private boolean isSimCardFull(ContentResolver resolver) {
-            int count = 0;
-            Cursor c = null;
-            Uri iccUri;
-            if (!MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-                iccUri = Uri.parse("content://icc/adn");
-            } else {
-                iccUri = Uri.parse(subscription == 0 ? "content://iccmsim/adn"
-                    : "content://iccmsim/adn_sub2");
-            }
-            try {
-                c = resolver.query(iccUri, null, null, null, null);
-                if (c != null) {
-                    count = c.getCount();
-                }
-            } finally {
-                if (c != null) {
-                    c.close();
-                }
-            }
-
-            if (!MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-            /*  wait for frameworks method add
-                String CardType = TelephonyManager.getDefault().getCardType();
-                if (SimContactsConstants.USIM.equals(CardType)
-                        || SimContactsConstants.CSIM.equals(CardType)) {
-                    if (MAX_COUNT_UIM_CARD == count)
-                        return true;
-                } else {
-                    if (MAX_COUNT_SIM_CARD == count)
-                        return true;
-                }
-            */
-                if (MAX_COUNT_SIM_CARD == count)
-                    return true;
-            } else {
-            /*  wait for frameworks method add
-                String CardType = MSimTelephonyManager.getDefault().getCardType(
-                    subscription);
-                if (SimContactsConstants.USIM.equals(CardType)
-                        || SimContactsConstants.CSIM.equals(CardType)) {
-                    if (MAX_COUNT_UIM_CARD == count)
-                        return true;
-                } else {
-                    if (MAX_COUNT_SIM_CARD == count)
-                        return true;
-                }
-            */
-                if (MAX_COUNT_SIM_CARD == count)
-                    return true;
-            }
-            return false;
         }
 
         private void setExportProgress(int size){
@@ -1111,6 +1129,9 @@ public class ImportExportDialogFragment extends DialogFragment
             mExportSub = getEnabledIccCard();
             Intent pickPhoneIntent = new Intent(ACTION_MULTI_PICK, Contacts.CONTENT_URI);
             // do not show the contacts in SIM card
+            pickPhoneIntent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER,
+                    ContactListFilter
+                            .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
             pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
             mactiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
         }

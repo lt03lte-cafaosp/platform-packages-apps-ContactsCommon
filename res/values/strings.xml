@@ -782,4 +782,9 @@ a        ren't members of any other group. [CHAR LIMIT=25] -->
 
     <!-- Warning dialog contents after users selects to delete a contact with multiple Writable sources. -->
     <string name="multipleContactDeleteConfirmation">Deleting this contact will delete information from multiple accounts.</string>
+
+    <string name="copy_done">Copy done！</string>
+    <string name="copy_failure">Copy Failed！</string>
+    <string name="card_no_space">Card has no space ,some record copy failed</string>
+    <string name="no_empty_email_in_usim">No more Email space in USIM card, coping whitout the Email</string>
 </resources>
