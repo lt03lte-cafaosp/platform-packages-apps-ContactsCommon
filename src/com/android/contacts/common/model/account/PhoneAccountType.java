@@ -32,6 +32,7 @@ package com.android.contacts.common.model.account;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
+import android.os.SystemProperties;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -73,6 +74,10 @@ public class PhoneAccountType extends BaseAccountType{
             addDataKindWebsite(context);
             //addDataKindGroupMembership(context);
             addDataKindLocalGroups(context);
+
+            if (!SystemProperties.getBoolean("persist.env.phone.hidevoip", false)) {
+                addDataKindSipAddress(context);
+            }
 
             mIsInitialized = true;
         } catch (DefinitionException e) {
