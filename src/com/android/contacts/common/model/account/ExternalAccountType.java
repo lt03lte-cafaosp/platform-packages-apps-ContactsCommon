@@ -48,6 +48,8 @@ public class ExternalAccountType extends BaseAccountType {
     private static final String TAG = "ExternalAccountType";
 
     private static final String METADATA_CONTACTS = "android.provider.CONTACTS_STRUCTURE";
+    private static final String BAIDUYUN_ACCOUNT_TYPE =
+            "com.baidu.pcsssoaccount.oemsdkaccounttype";
 
     private static final String TAG_CONTACTS_SOURCE_LEGACY = "ContactsSource";
     private static final String TAG_CONTACTS_ACCOUNT_TYPE = "ContactsAccountType";
@@ -219,6 +221,9 @@ public class ExternalAccountType extends BaseAccountType {
 
     @Override
     public boolean areContactsWritable() {
+        if (BAIDUYUN_ACCOUNT_TYPE.equals(accountType)) {
+            mHasEditSchema = true;
+        }
         return mHasEditSchema;
     }
 
