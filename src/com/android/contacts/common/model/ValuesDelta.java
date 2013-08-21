@@ -50,6 +50,8 @@ public class ValuesDelta implements Parcelable {
      */
     protected static int sNextInsertId = -1;
 
+    private static final String CONTENT_DETAIL_INFO = "data1";
+
     protected ValuesDelta() {
     }
 
@@ -61,6 +63,17 @@ public class ValuesDelta implements Parcelable {
         final ValuesDelta entry = new ValuesDelta();
         entry.mBefore = before;
         entry.mAfter = new ContentValues();
+
+        // init data1 to mAfter map. when no operation edittext of
+        // sim phone in the UI, the mAfter init have no data1 value,
+        // it will cause the builddiff data not right.
+        if (before.containsKey(CONTENT_DETAIL_INFO)) {
+            String contactInfo = before.getAsString(CONTENT_DETAIL_INFO);
+            if (null != contactInfo && !"".equals(contactInfo)) {
+                entry.mAfter.put(CONTENT_DETAIL_INFO, contactInfo);
+            }
+        }
+
         return entry;
     }
 
