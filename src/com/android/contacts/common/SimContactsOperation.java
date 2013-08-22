@@ -227,19 +227,19 @@ public class SimContactsOperation {
 
             int sub = getSimSubscription(contactId);
 
-            // need framework support SimContacts' anrs and emails.
-            // if (SimContactsConstants.USIM.equals(getCardType(sub))) {
-            //     String anrs = getContactPhoneNumber(rawContactId,
-            //         Phone.CONTENT_ITEM_TYPE, String.valueOf(Phone.TYPE_HOME),
-            //         ContactsContract.CommonDataKinds.Phone.DATA);
-            //     mValues.put(SimContactsConstants.STR_ANRS,anrs);
-            //
-            //     String emails = getContactItems(rawContactId,
-            //         Email.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.Email.DATA);
-            //     mValues.put(SimContactsConstants.STR_EMAILS,emails);
-            // }
-        }
+            if (MoreContactUtils.canSaveAnr(sub)) {
+                String anrs = getContactPhoneNumber(rawContactId,
+                        Phone.CONTENT_ITEM_TYPE, String.valueOf(Phone.TYPE_HOME),
+                        ContactsContract.CommonDataKinds.Phone.DATA);
+                mValues.put(SimContactsConstants.STR_ANRS, anrs);
+            }
 
+            if (MoreContactUtils.canSaveEmail(sub)) {
+                String emails = getContactItems(rawContactId,
+                        Email.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.Email.DATA);
+                mValues.put(SimContactsConstants.STR_EMAILS, emails);
+            }
+        }
         return mValues;
     }
 
