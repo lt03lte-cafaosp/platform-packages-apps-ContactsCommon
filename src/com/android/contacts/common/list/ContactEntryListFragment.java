@@ -382,6 +382,9 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
     protected void loadDirectoryPartition(int partitionIndex, DirectoryPartition partition) {
         Bundle args = new Bundle();
         args.putLong(DIRECTORY_ID_ARG_KEY, partition.getDirectoryId());
+        if (getLoaderManager().getLoader(partitionIndex) != null) {
+            getLoaderManager().destroyLoader(partitionIndex);
+        }
         getLoaderManager().restartLoader(partitionIndex, args, this);
     }
 
@@ -423,6 +426,7 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.changeCursor(null);
     }
 
     protected void onPartitionLoaded(int partitionIndex, Cursor data) {
