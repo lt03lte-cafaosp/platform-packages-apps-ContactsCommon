@@ -29,12 +29,14 @@ import android.provider.ContactsContract.ContactCounts;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.Directory;
+import android.provider.ContactsContract.RawContacts;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.contacts.common.R;
+import com.android.contacts.common.model.account.SimAccountType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -164,6 +166,12 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
             case ContactListFilter.FILTER_TYPE_CUSTOM: {
                 selection.append(Contacts.IN_VISIBLE_GROUP + "=1");
                 selection.append(" AND " + Contacts.HAS_PHONE_NUMBER + "=1");
+                break;
+            }
+            case ContactListFilter.FILTER_TYPE_ALL_WITHOUT_SIM: {
+                uriBuilder.appendQueryParameter(RawContacts.ACCOUNT_TYPE,
+                        SimAccountType.ACCOUNT_TYPE).appendQueryParameter(DefaultContactListAdapter
+                        .WITHOUT_SIM_FLAG, "true").build();
                 break;
             }
             case ContactListFilter.FILTER_TYPE_ACCOUNT: {
