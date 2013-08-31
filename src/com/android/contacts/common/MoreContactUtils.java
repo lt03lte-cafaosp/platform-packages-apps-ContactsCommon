@@ -32,6 +32,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -47,6 +48,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.contacts.common.model.account.AccountType;
@@ -74,11 +76,18 @@ public class MoreContactUtils {
     private static final int MAX_LENGTH_NUMBER_IN_SIM = 20;
     private static final int MAX_LENGTH_EMAIL_IN_SIM = 40;
 
+    public static final int DEFAULT_STYLE = 0;
+    public static final int ONE_BUTTON_STYLE = 1;
+    public static final int TWO_BUTTON_STYLE = 2;
+
     public static final String SMS = "sms";
     public static final String DIAL_WIDGET_SWITCHED = "dial_widget_switched";
+    public static final String IS_FROM_DAILER = "is_from_dailer";
 
     public static final int FRAMEWORK_ICON = 1;
     public static final int CONTACTSCOMMON_ICON = 2;
+
+    public static final int DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE = -1;
 
     /**
      * Returns true if two data with mimetypes which represent values in contact entries are
@@ -727,6 +736,21 @@ public class MoreContactUtils {
     }
 
     /**
+     * Get the enabled SIM cards' count.
+     */
+    public static int getEnabledSimCount() {
+        MSimTelephonyManager mSimTelManager = getMSimTelephonyManager();
+        int mPhoneCount = mSimTelManager.getPhoneCount();
+        int enabledSimCount = 0;
+        for (int i = 0; i < mPhoneCount; i++) {
+            if (TelephonyManager.SIM_STATE_READY == mSimTelManager.getSimState(i)) {
+                enabledSimCount++;
+            }
+        }
+        return enabledSimCount;
+    }
+
+    /**
      * Check one SIM card is enabled
      */
     public static boolean isMultiSimEnable(int slotId) {
@@ -749,7 +773,7 @@ public class MoreContactUtils {
      */
     public static String getSimAccountName(int subscription) {
         final String ACCOUNT_NAME_SIM = "SIM";
-        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+        if (getMSimTelephonyManager().isMultiSimEnabled()) {
             return ACCOUNT_NAME_SIM + (subscription + 1);
         } else {
             return ACCOUNT_NAME_SIM;
@@ -798,6 +822,163 @@ public class MoreContactUtils {
             accountUserName = accountName;
         }
         return accountUserName;
+    }
+
+    /**
+     * Get two-button style status
+     */
+    public static int getButtonStyle() {
+        return SystemProperties.getInt("persist.env.dialer.dialbutton",
+                MoreContactUtils.TWO_BUTTON_STYLE);
+    }
+
+    /**
+     * Setting two-button display
+     */
+    public static void controlCallIconDisplay(Context mContext, View layoutSub1, View buttonSub1,
+            ImageView iconSub1, View layoutSub2, View buttonSub2, ImageView iconSub2,
+            View divider_sub1, View divider_sub2, int showWhichBtnInDef) {
+        controlCallIconDisplay(mContext, layoutSub1, buttonSub1, iconSub1, layoutSub2, buttonSub2,
+                iconSub2, divider_sub2);
+
+        final boolean sub1Enable = isMultiSimEnable(MSimConstants.SUB1);
+        final boolean sub2Enable = isMultiSimEnable(MSimConstants.SUB2);
+        final boolean bothEnable = sub1Enable && sub2Enable;
+        final boolean onlySub1Enable = sub1Enable && !sub2Enable;
+        final boolean onlySub2Enable = !sub1Enable && sub2Enable;
+        final boolean bothDisable = !sub1Enable && !sub2Enable;
+
+        // default style
+        if (MoreContactUtils.getButtonStyle() == MoreContactUtils.DEFAULT_STYLE) {
+            divider_sub1.setVisibility(View.GONE);
+            if (MSimConstants.SUB1 == showWhichBtnInDef) {
+                layoutSub1.setVisibility(View.VISIBLE);
+                buttonSub1.setVisibility(View.VISIBLE);
+                iconSub1.setVisibility(View.VISIBLE);
+                iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                        MoreContactUtils.FRAMEWORK_ICON, showWhichBtnInDef));
+            } else if (MSimConstants.SUB2 == showWhichBtnInDef) {
+                layoutSub2.setVisibility(View.VISIBLE);
+                buttonSub2.setVisibility(View.VISIBLE);
+                iconSub2.setVisibility(View.VISIBLE);
+                iconSub2.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                        MoreContactUtils.FRAMEWORK_ICON, showWhichBtnInDef));
+            } else if (DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE == showWhichBtnInDef) {
+                layoutSub1.setVisibility(View.VISIBLE);
+                buttonSub1.setVisibility(View.VISIBLE);
+                iconSub1.setVisibility(View.VISIBLE);
+                iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                        MoreContactUtils.FRAMEWORK_ICON, showWhichBtnInDef));
+            } else {
+                layoutSub1.setVisibility(View.GONE);
+                buttonSub1.setVisibility(View.GONE);
+                iconSub1.setVisibility(View.GONE);
+                layoutSub2.setVisibility(View.GONE);
+                buttonSub2.setVisibility(View.GONE);
+                iconSub2.setVisibility(View.GONE);
+            }
+        }
+
+        // divider's visibility in two button style
+        if (MoreContactUtils.getButtonStyle() == MoreContactUtils.TWO_BUTTON_STYLE) {
+            if (bothEnable) {
+                divider_sub1.setVisibility(View.GONE);
+                divider_sub2.setVisibility(View.VISIBLE);
+            }
+            if (onlySub1Enable) {
+                divider_sub1.setVisibility(View.VISIBLE);
+                divider_sub2.setVisibility(View.GONE);
+            }
+            if (onlySub2Enable) {
+                divider_sub1.setVisibility(View.GONE);
+                divider_sub2.setVisibility(View.VISIBLE);
+            }
+            if (bothDisable) {
+                divider_sub1.setVisibility(View.GONE);
+                divider_sub2.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * Setting two-button display
+     */
+    public static void controlCallIconDisplay(Context mContext, View layoutSub1, View buttonSub1,
+            ImageView iconSub1, View layoutSub2, View buttonSub2, ImageView iconSub2,
+            View divider_sub2) {
+        if (divider_sub2 != null) {
+            divider_sub2.setVisibility(View.GONE);
+        }
+        // default style(all gone in CallLogDetail QuickContacts ContactDetail)
+        if (MoreContactUtils.getButtonStyle() == MoreContactUtils.DEFAULT_STYLE) {
+            layoutSub1.setVisibility(View.GONE);
+            buttonSub1.setVisibility(View.GONE);
+            iconSub1.setVisibility(View.GONE);
+            layoutSub2.setVisibility(View.GONE);
+            buttonSub2.setVisibility(View.GONE);
+            iconSub2.setVisibility(View.GONE);
+            return;
+        }
+
+        // two button style
+        if (MoreContactUtils.getButtonStyle() == MoreContactUtils.TWO_BUTTON_STYLE) {
+            iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                    MoreContactUtils.FRAMEWORK_ICON, MSimConstants.SUB1));
+            iconSub2.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                    MoreContactUtils.FRAMEWORK_ICON, MSimConstants.SUB2));
+
+            boolean isSim1Enable = false;
+            if (MoreContactUtils.isMultiSimEnable(MSimConstants.SUB1)) {
+                isSim1Enable = true;
+            }
+
+            boolean isSim2Enable = false;
+            if (MoreContactUtils.isMultiSimEnable(MSimConstants.SUB2)) {
+                isSim2Enable = true;
+            }
+
+            if (isSim1Enable) {
+                if (isSim2Enable) {
+                    // both enable
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.VISIBLE);
+                    layoutSub2.setVisibility(View.VISIBLE);
+                    buttonSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.VISIBLE);
+                    if (divider_sub2 != null) {
+                        divider_sub2.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    // Sim1 enable but Sim2 disable
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.VISIBLE);
+                    layoutSub2.setVisibility(View.GONE);
+                    buttonSub2.setVisibility(View.GONE);
+                    iconSub2.setVisibility(View.GONE);
+                }
+            } else {
+                if (isSim2Enable) {
+                    // Sim1 disable but Sim2 enable
+                    layoutSub1.setVisibility(View.GONE);
+                    buttonSub1.setVisibility(View.GONE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.VISIBLE);
+                    buttonSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.VISIBLE);
+                } else {
+                    // both disable
+                    layoutSub1.setVisibility(View.GONE);
+                    buttonSub1.setVisibility(View.GONE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.GONE);
+                    buttonSub2.setVisibility(View.GONE);
+                    iconSub2.setVisibility(View.GONE);
+                }
+            }
+            return;
+        }
     }
 
     /**
