@@ -158,6 +158,8 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
     public abstract void loadThumbnail(ImageView view, long photoId, boolean darkTheme,
             DefaultImageProvider defaultProvider);
 
+    public abstract void clear();
+
     /**
      * Calls {@link #loadThumbnail(ImageView, long, boolean, DefaultImageProvider)} with
      * {@link #DEFAULT_AVATAR}.

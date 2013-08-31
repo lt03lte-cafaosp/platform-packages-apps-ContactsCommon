@@ -20,9 +20,11 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -48,6 +50,7 @@ import com.android.common.widget.CompositeCursorAdapter.Partition;
 import com.android.contacts.common.ContactPhotoManager;
 import com.android.contacts.common.R;
 import com.android.contacts.common.preference.ContactsPreferences;
+import com.android.internal.telephony.TelephonyIntents;
 
 import java.util.Locale;
 
@@ -140,6 +143,13 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
     private Context mContext;
 
     private LoaderManager mLoaderManager;
+
+    private BroadcastReceiver mSIMStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context arg0, Intent arg1) {
+            reloadData();
+        }
+    };
 
     private Handler mDelayedDirectorySearchHandler = new Handler() {
         @Override
@@ -245,6 +255,11 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
         super.onCreate(savedState);
         mContactsPrefs = new ContactsPreferences(mContext);
         restoreSavedState(savedState);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
+        mContext.registerReceiver(mSIMStateReceiver, filter);
     }
 
     public void restoreSavedState(Bundle savedState) {
@@ -367,6 +382,9 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
     protected void loadDirectoryPartition(int partitionIndex, DirectoryPartition partition) {
         Bundle args = new Bundle();
         args.putLong(DIRECTORY_ID_ARG_KEY, partition.getDirectoryId());
+        if (getLoaderManager().getLoader(partitionIndex) != null) {
+            getLoaderManager().destroyLoader(partitionIndex);
+        }
         getLoaderManager().restartLoader(partitionIndex, args, this);
     }
 
@@ -408,6 +426,7 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.changeCursor(null);
     }
 
     protected void onPartitionLoaded(int partitionIndex, Cursor data) {
@@ -449,6 +468,12 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
         super.onStop();
         mContactsPrefs.unregisterChangeListener();
         mAdapter.clearPartitions();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mContext.unregisterReceiver(mSIMStateReceiver);
     }
 
     protected void reloadData() {
