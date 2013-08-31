@@ -261,6 +261,8 @@
     <string name="readOnlyContactWarning">"您无法删除只读帐户中的联系人，但可以在联系人列表中将他们隐藏。"</string>
     <string name="multipleContactDeleteConfirmation">"删除该联系人将会删除多个帐户中的信息。"</string>
 
+    <string name="slot_name">"卡"</string>
+
     <string name="copy_done">复制成功！</string>
     <string name="copy_failure">复制失败！</string>
     <string name="card_no_space">卡记录已满，部分信息未复制</string>

@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.AccountTypeManager;
 import com.android.contacts.common.model.account.AccountType;
@@ -120,10 +121,11 @@ public class ContactListFilterView extends LinearLayout {
                 } else {
                     mIcon.setImageResource(R.drawable.unknown_source);
                 }
-                final AccountType accountType =
-                        accountTypes.getAccountType(mFilter.accountType, mFilter.dataSet);
-                mAccountUserName.setText(mFilter.accountName);
-                mAccountType.setText(accountType.getDisplayLabel(getContext()));
+                mAccountUserName.setText(MoreContactUtils.getAccountUserName(mContext,
+                        mFilter.accountType, mFilter.accountName));
+                mAccountType.setText(MoreContactUtils.getAccountType(mContext,
+                        accountTypes.getAccountType(mFilter.accountType, mFilter.dataSet),
+                        mFilter.accountType, mFilter.accountName));
                 break;
             }
         }

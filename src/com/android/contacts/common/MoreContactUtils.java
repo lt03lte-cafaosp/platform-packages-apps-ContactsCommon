@@ -25,8 +25,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -48,10 +50,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.android.contacts.common.model.account.AccountType;
+import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.preference.ContactsPreferences;
 import com.android.i18n.phonenumbers.NumberParseException;
 import com.android.i18n.phonenumbers.PhoneNumberUtil;
 import com.android.internal.telephony.IIccPhoneBook;
+import com.android.internal.telephony.MSimConstants;
 import com.android.internal.telephony.msim.IIccPhoneBookMSim;
 
 import java.util.ArrayList;
@@ -72,6 +76,9 @@ public class MoreContactUtils {
 
     public static final String SMS = "sms";
     public static final String DIAL_WIDGET_SWITCHED = "dial_widget_switched";
+
+    public static final int FRAMEWORK_ICON = 1;
+    public static final int CONTACTSCOMMON_ICON = 2;
 
     /**
      * Returns true if two data with mimetypes which represent values in contact entries are
@@ -658,6 +665,54 @@ public class MoreContactUtils {
     }
 
     /**
+     * Get SIM card aliases name, which defined in Settings
+     */
+    public static String getMultiSimAliasesName(Context context, int subscription) {
+        if (context == null) {
+            return null;
+        }
+
+        String name = "";
+        name = Settings.System.getString(context.getContentResolver(),
+                Settings.System.MULTI_SIM_NAME[subscription]);
+        if (TextUtils.isEmpty(name)) {
+            return context.getString(R.string.slot_name) + " " + (subscription + 1);
+        }
+        return name;
+    }
+
+    /**
+     * Get SIM card icon
+     */
+    public static Drawable getMultiSimIcon(Context context, int style, int subscription) {
+        if (context == null || subscription < 0
+                || subscription >= getMSimTelephonyManager().getPhoneCount()) {
+            return null;
+        }
+
+        TypedArray icons;
+        if (style == CONTACTSCOMMON_ICON) {
+            icons = context.getResources().obtainTypedArray(
+                    com.android.contacts.common.R.array.sim_icons_small);
+        } else {
+            icons = context.getResources().obtainTypedArray(
+                    com.android.internal.R.array.sim_icons);
+        }
+
+        String simIconIndex = Settings.System.getString(context.getContentResolver(),
+                Settings.System.PREFERRED_SIM_ICON_INDEX);
+        if (TextUtils.isEmpty(simIconIndex)) {
+            return icons.getDrawable(subscription);
+        } else {
+            String[] indexs = simIconIndex.split(",");
+            if (subscription >= indexs.length) {
+                return null;
+            }
+            return icons.getDrawable(Integer.parseInt(indexs[subscription]));
+        }
+    }
+
+    /**
      * Get SIM card SPN name, e.g. China Union
      */
     public static String getSimSpnName(int subscription) {
@@ -699,6 +754,50 @@ public class MoreContactUtils {
         } else {
             return ACCOUNT_NAME_SIM;
         }
+    }
+
+    /**
+     * Get SIM card subscription from account name
+     */
+    public static int getSubFromAccountName(String accountName) {
+        MSimTelephonyManager stm = getMSimTelephonyManager();
+        if (stm.isMultiSimEnabled()) {
+            int phonecount = stm.getPhoneCount();
+            for (int i = 0; i < phonecount; i++) {
+                if (getSimAccountName(i).equals(accountName)) {
+                    return i;
+                }
+            }
+        } else {
+            int defaultSub = MSimConstants.DEFAULT_SUBSCRIPTION;
+            if (getSimAccountName(defaultSub).equals(accountName))
+                return defaultSub;
+        }
+        return -1;
+    }
+
+    public static String getAccountType(Context mContext, AccountType at, String accountType,
+            String accountName) {
+        String returnVal = "";
+        if ((SimAccountType.ACCOUNT_TYPE).equals(accountType)) {
+            int sub = MoreContactUtils.getSubFromAccountName(accountName);
+            returnVal = MoreContactUtils.getSimSpnName(sub);
+        } else {
+            returnVal = at.getDisplayLabel(mContext).toString();
+        }
+        return returnVal;
+    }
+
+    public static String getAccountUserName(Context mContext, String accountType,
+            String accountName) {
+        String accountUserName = "";
+        if ((SimAccountType.ACCOUNT_TYPE).equals(accountType)) {
+            int sub = MoreContactUtils.getSubFromAccountName(accountName);
+            accountUserName = MoreContactUtils.getMultiSimAliasesName(mContext, sub);
+        } else {
+            accountUserName = accountName;
+        }
+        return accountUserName;
     }
 
     /**
