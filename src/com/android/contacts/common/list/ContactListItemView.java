@@ -153,6 +153,8 @@ public class ContactListItemView extends ViewGroup
     private TextView mCountView;
     private ImageView mPresenceIcon;
 
+    private TextView mLocationView;
+
     private ColorStateList mSecondaryTextColor;
 
     private String mHighlightedPrefix;
@@ -350,7 +352,7 @@ public class ContactListItemView extends ViewGroup
                 nameTextWidth -= mTextIndent;
             }
             mNameTextView.measure(
-                    MeasureSpec.makeMeasureSpec(nameTextWidth, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mNameTextViewHeight = mNameTextView.getMeasuredHeight();
         }
@@ -387,7 +389,7 @@ public class ContactListItemView extends ViewGroup
         }
 
         if (isVisible(mDataView)) {
-            mDataView.measure(MeasureSpec.makeMeasureSpec(dataWidth, MeasureSpec.EXACTLY),
+            mDataView.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mDataViewHeight = mDataView.getMeasuredHeight();
         }
@@ -558,13 +560,20 @@ public class ContactListItemView extends ViewGroup
                 mLabelAndDataViewMaxHeight + mSnippetTextViewHeight + mStatusTextViewHeight;
         int textTopBound = (bottomBound + topBound - totalTextHeight) / 2;
 
+        int nameLeftBound = leftBound;
+        final int nameTopBound = textTopBound;
         // Layout all text view and presence icon
         // Put name TextView first
         if (isVisible(mNameTextView)) {
+            int nameWidth = mNameTextView.getMeasuredWidth();
             mNameTextView.layout(leftBound,
                     textTopBound,
-                    rightBound,
+                    leftBound + nameWidth,
                     textTopBound + mNameTextViewHeight);
+            nameLeftBound = leftBound + nameWidth + mTextIndent;
+        }
+
+        if (isVisible(mNameTextView) || isVisible(mLabelView)) {
             textTopBound += mNameTextViewHeight;
         }
 
@@ -625,11 +634,10 @@ public class ContactListItemView extends ViewGroup
         if (isVisible(mLabelView)) {
             if (mPhotoPosition == PhotoPosition.LEFT) {
                 // When photo is on left, label is placed on the right edge of the list item.
-                mLabelView.layout(rightBound - mLabelView.getMeasuredWidth(),
-                        textTopBound + mLabelAndDataViewMaxHeight - mLabelViewHeight,
-                        rightBound,
-                        textTopBound + mLabelAndDataViewMaxHeight);
-                rightBound -= mLabelView.getMeasuredWidth();
+                mLabelView.layout(nameLeftBound,
+                        nameTopBound,
+                        nameLeftBound + mLabelView.getMeasuredWidth(),
+                        nameTopBound + mNameTextViewHeight);
             } else {
                 // When photo is on right, label is placed on the left of data view.
                 dataLeftBound = leftBound + mLabelView.getMeasuredWidth();
@@ -644,7 +652,7 @@ public class ContactListItemView extends ViewGroup
         if (isVisible(mDataView)) {
             mDataView.layout(dataLeftBound,
                     textTopBound + mLabelAndDataViewMaxHeight - mDataViewHeight,
-                    rightBound,
+                    dataLeftBound + mDataView.getMeasuredWidth(),
                     textTopBound + mLabelAndDataViewMaxHeight);
         }
         if (isVisible(mLabelView) || isVisible(mDataView)) {
@@ -938,9 +946,7 @@ public class ContactListItemView extends ViewGroup
             mLabelView.setEllipsize(getTextEllipsis());
             mLabelView.setTextAppearance(mContext, android.R.style.TextAppearance_Small);
             if (mPhotoPosition == PhotoPosition.LEFT) {
-                mLabelView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mCountViewTextSize);
-                mLabelView.setAllCaps(true);
-                mLabelView.setGravity(Gravity.END);
+                mLabelView.setGravity(Gravity.CENTER_VERTICAL);
             } else {
                 mLabelView.setTypeface(mLabelView.getTypeface(), Typeface.BOLD);
             }
@@ -949,6 +955,37 @@ public class ContactListItemView extends ViewGroup
             addView(mLabelView);
         }
         return mLabelView;
+    }
+
+    public void setLocation(CharSequence text) {
+        if (TextUtils.isEmpty(text)) {
+            if (mLocationView != null) {
+                mLocationView.setVisibility(View.GONE);
+            }
+        } else {
+            getLocationView();
+            setMarqueeText(mLocationView, text);
+            mLocationView.setVisibility(VISIBLE);
+        }
+    }
+
+    public TextView getLocationView() {
+        if (mLocationView == null) {
+            mLocationView = new TextView(mContext);
+            mLocationView.setSingleLine(true);
+            mLocationView.setEllipsize(getTextEllipsis());
+            mLocationView.setTextAppearance(mContext,
+                    android.R.style.TextAppearance_Small);
+            if (mPhotoPosition == PhotoPosition.LEFT) {
+                mLocationView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mCountViewTextSize);
+                mLocationView.setGravity(Gravity.CENTER_VERTICAL);
+            } else {
+                mLocationView.setTypeface(mLabelView.getTypeface(), Typeface.BOLD);
+            }
+            mLocationView.setActivated(isActivated());
+            addView(mLocationView);
+        }
+        return mLocationView;
     }
 
     /**
