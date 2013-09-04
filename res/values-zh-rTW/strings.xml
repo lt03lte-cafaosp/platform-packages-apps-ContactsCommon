@@ -259,4 +259,12 @@
     <string name="copy_failure">複制失敗！</string>
     <string name="card_no_space">卡記錄已滿，部分信息未複制</string>
     <string name="no_empty_email_in_usim">卡上電子郵件空間已滿，部分郵件信息將不會複制</string>
+
+    <!-- Menu item used to initiate ip call -->
+    <string name="ip_call_by_slot">"IP撥號通過<xliff:g id="subName">%s</xliff:g>"</string>
+    <string name="no_ip_number">"沒有IP號"</string>
+    <string name="no_ip_number_on_sim_card">"SIM卡上沒有IP號"</string>
+    <string name="set_ip_number">"設置IP號"</string>
+    <string name="ipcall_dialog_title">"IP電話設置"</string>
+    <string name="ipcall_dialog_edit_hint">"請輸入IP電話前綴"</string>
 </resources>
