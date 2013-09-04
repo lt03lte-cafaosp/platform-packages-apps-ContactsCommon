@@ -25,6 +25,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.AccountTypeManager;
 import com.android.contacts.common.model.account.AccountType;
@@ -115,14 +116,15 @@ public final class AccountsListAdapter extends BaseAdapter {
         final AccountWithDataSet account = mAccounts.get(position);
         final AccountType accountType = mAccountTypes.getAccountType(account.type, account.dataSet);
 
-        text1.setText(accountType.getDisplayLabel(mContext));
+        text1.setText(MoreContactUtils.getAccountType(mContext, accountType, account.type,
+                account.name));
 
         // For email addresses, we don't want to truncate at end, which might cut off the domain
         // name.
-        text2.setText(account.name);
+        text2.setText(MoreContactUtils.getAccountUserName(mContext, account.type, account.name));
         text2.setEllipsize(TruncateAt.MIDDLE);
 
-        icon.setImageDrawable(accountType.getDisplayIcon(mContext));
+        icon.setImageDrawable(accountType.getDisplayIcon(mContext, account.name));
 
         return resultView;
     }

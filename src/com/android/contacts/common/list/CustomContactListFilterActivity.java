@@ -53,6 +53,7 @@ import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
 import android.widget.TextView;
 
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.AccountTypeManager;
 import com.android.contacts.common.model.ValuesDelta;
@@ -582,9 +583,11 @@ public class CustomContactListFilterActivity extends Activity
             final AccountType accountType = mAccountTypes.getAccountType(
                     account.mType, account.mDataSet);
 
-            text1.setText(account.mName);
+            text1.setText(MoreContactUtils.getAccountType(mContext, accountType, account.mType,
+                    account.mName));
             text1.setVisibility(account.mName == null ? View.GONE : View.VISIBLE);
-            text2.setText(accountType.getDisplayLabel(mContext));
+            text2.setText(MoreContactUtils.getAccountUserName(mContext, account.mType,
+                    account.mName));
 
             return convertView;
         }

@@ -255,6 +255,8 @@
     <string name="readOnlyContactWarning" msgid="7808825687289848259">"您無法刪除唯讀帳戶的聯絡人，但可在聯絡人清單中隱藏這些聯絡人。"</string>
     <string name="multipleContactDeleteConfirmation" msgid="938900978442960800">"刪除此聯絡人將會刪除多個帳戶的資訊。"</string>
 
+    <string name="slot_name">"卡"</string>
+
     <string name="copy_done">複制成功！</string>
     <string name="copy_failure">複制失敗！</string>
     <string name="card_no_space">卡記錄已滿，部分信息未複制</string>
