@@ -17,10 +17,13 @@ package com.android.contacts.common.list;
 
 import android.content.Context;
 import android.content.Intent;
+import android.provider.ContactsContract.QuickContact;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.QuickContactBadge;
 
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 
 /**
@@ -46,9 +49,30 @@ public class ContactTilePhoneStarredView extends ContactTileView {
                 // Secondary target will be visible only from phone's favorite screen, then
                 // we want to launch it as a separate People task.
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra(MoreContactUtils.IS_FROM_DAILER, true);
                 getContext().startActivity(intent);
             }
         });
+    }
+
+    @Override
+    protected OnClickListener createClickListener() {
+        return new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener == null) {
+                    return;
+                }
+
+                if (MoreContactUtils.getEnabledSimCount() > 1) {
+                    QuickContact.showQuickContact(mContext, new QuickContactBadge(mContext),
+                            getLookupUri(), QuickContact.MODE_LARGE, null);
+                } else {
+                    mListener.onContactSelected(getLookupUri(), MoreContactUtils
+                            .getTargetRectFromView(mContext, ContactTilePhoneStarredView.this));
+                }
+            }
+        };
     }
 
     @Override
