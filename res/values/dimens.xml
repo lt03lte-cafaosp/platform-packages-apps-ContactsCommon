@@ -81,4 +81,14 @@
     -->
     <dimen name="contact_phone_list_empty_description_size">20sp</dimen>
     <dimen name="contact_phone_list_empty_description_padding">10dip</dimen>
+
+    <dimen name="dsds_btnstyle_layout_width">48dip</dimen>
+    <dimen name="dsds_btnstyle_layout_height">48dip</dimen>
+    <dimen name="dsds_btnstyle_sub_icon_margin_top">10dip</dimen>
+    <dimen name="dsds_btnstyle_sub_icon_margin_right">8dip</dimen>
+
+    <!-- Dimensions for dsds divider -->
+    <dimen name="dsds_vertical_divider_vertical_margin">16dip</dimen>
+    <dimen name="dsds_vertical_divider_width">1dip</dimen>
+    <dimen name="dsds_vertical_divider_height">-1dip</dimen>
 </resources>

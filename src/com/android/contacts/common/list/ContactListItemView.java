@@ -17,6 +17,7 @@
 package com.android.contacts.common.list;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.database.CharArrayBuffer;
@@ -28,7 +29,9 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.provider.ContactsContract.Contacts;
+import android.provider.Settings.SettingNotFoundException;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -44,11 +47,14 @@ import android.widget.ImageView.ScaleType;
 import android.widget.QuickContactBadge;
 import android.widget.TextView;
 
+import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.ContactPresenceIconUtil;
 import com.android.contacts.common.ContactStatusUtil;
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.format.PrefixHighlighter;
 import com.android.contacts.common.util.SearchUtil;
+import com.android.internal.telephony.MSimConstants;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -152,6 +158,20 @@ public class ContactListItemView extends ViewGroup
     private TextView mStatusView;
     private TextView mCountView;
     private ImageView mPresenceIcon;
+
+    private TextView mLocationView;
+
+    private View mSecondaryActionContainerView;
+
+    private View divider_sub1;
+    private View layoutSub1;
+    private ImageView callButtonSub1;
+    private ImageView callIconSub1;
+
+    private View divider_sub2;
+    private View layoutSub2;
+    private ImageView callButtonSub2;
+    private ImageView callIconSub2;
 
     private ColorStateList mSecondaryTextColor;
 
@@ -350,7 +370,7 @@ public class ContactListItemView extends ViewGroup
                 nameTextWidth -= mTextIndent;
             }
             mNameTextView.measure(
-                    MeasureSpec.makeMeasureSpec(nameTextWidth, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mNameTextViewHeight = mNameTextView.getMeasuredHeight();
         }
@@ -387,7 +407,7 @@ public class ContactListItemView extends ViewGroup
         }
 
         if (isVisible(mDataView)) {
-            mDataView.measure(MeasureSpec.makeMeasureSpec(dataWidth, MeasureSpec.EXACTLY),
+            mDataView.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mDataViewHeight = mDataView.getMeasuredHeight();
         }
@@ -402,6 +422,12 @@ public class ContactListItemView extends ViewGroup
             mLabelViewHeight = mLabelView.getMeasuredHeight();
         }
         mLabelAndDataViewMaxHeight = Math.max(mLabelViewHeight, mDataViewHeight);
+
+        if (isVisible(mSecondaryActionContainerView)) {
+            mSecondaryActionContainerView.measure(
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        }
 
         if (isVisible(mSnippetView)) {
             mSnippetView.measure(
@@ -558,14 +584,28 @@ public class ContactListItemView extends ViewGroup
                 mLabelAndDataViewMaxHeight + mSnippetTextViewHeight + mStatusTextViewHeight;
         int textTopBound = (bottomBound + topBound - totalTextHeight) / 2;
 
+        int nameLeftBound = leftBound;
+        final int nameTopBound = textTopBound;
         // Layout all text view and presence icon
         // Put name TextView first
         if (isVisible(mNameTextView)) {
+            int nameWidth = mNameTextView.getMeasuredWidth();
             mNameTextView.layout(leftBound,
                     textTopBound,
-                    rightBound,
+                    leftBound + nameWidth,
                     textTopBound + mNameTextViewHeight);
+            nameLeftBound = leftBound + nameWidth + mTextIndent;
+        }
+
+        if (isVisible(mNameTextView) || isVisible(mLabelView)) {
             textTopBound += mNameTextViewHeight;
+        }
+
+        if (isVisible(mSecondaryActionContainerView)) {
+            mSecondaryActionContainerView.layout(rightBound
+                    - mSecondaryActionContainerView.getMeasuredWidth(), nameTopBound,
+                    rightBound,
+                    nameTopBound + mSecondaryActionContainerView.getMeasuredHeight());
         }
 
         // Presence and status
@@ -625,11 +665,10 @@ public class ContactListItemView extends ViewGroup
         if (isVisible(mLabelView)) {
             if (mPhotoPosition == PhotoPosition.LEFT) {
                 // When photo is on left, label is placed on the right edge of the list item.
-                mLabelView.layout(rightBound - mLabelView.getMeasuredWidth(),
-                        textTopBound + mLabelAndDataViewMaxHeight - mLabelViewHeight,
-                        rightBound,
-                        textTopBound + mLabelAndDataViewMaxHeight);
-                rightBound -= mLabelView.getMeasuredWidth();
+                mLabelView.layout(nameLeftBound,
+                        nameTopBound,
+                        nameLeftBound + mLabelView.getMeasuredWidth(),
+                        nameTopBound + mNameTextViewHeight);
             } else {
                 // When photo is on right, label is placed on the left of data view.
                 dataLeftBound = leftBound + mLabelView.getMeasuredWidth();
@@ -644,7 +683,7 @@ public class ContactListItemView extends ViewGroup
         if (isVisible(mDataView)) {
             mDataView.layout(dataLeftBound,
                     textTopBound + mLabelAndDataViewMaxHeight - mDataViewHeight,
-                    rightBound,
+                    dataLeftBound + mDataView.getMeasuredWidth(),
                     textTopBound + mLabelAndDataViewMaxHeight);
         }
         if (isVisible(mLabelView) || isVisible(mDataView)) {
@@ -938,9 +977,7 @@ public class ContactListItemView extends ViewGroup
             mLabelView.setEllipsize(getTextEllipsis());
             mLabelView.setTextAppearance(mContext, android.R.style.TextAppearance_Small);
             if (mPhotoPosition == PhotoPosition.LEFT) {
-                mLabelView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mCountViewTextSize);
-                mLabelView.setAllCaps(true);
-                mLabelView.setGravity(Gravity.END);
+                mLabelView.setGravity(Gravity.CENTER_VERTICAL);
             } else {
                 mLabelView.setTypeface(mLabelView.getTypeface(), Typeface.BOLD);
             }
@@ -949,6 +986,113 @@ public class ContactListItemView extends ViewGroup
             addView(mLabelView);
         }
         return mLabelView;
+    }
+
+    public void setLocation(CharSequence text) {
+        if (TextUtils.isEmpty(text)) {
+            if (mLocationView != null) {
+                mLocationView.setVisibility(View.GONE);
+            }
+        } else {
+            getLocationView();
+            setMarqueeText(mLocationView, text);
+            mLocationView.setVisibility(VISIBLE);
+        }
+    }
+
+    public TextView getLocationView() {
+        if (mLocationView == null) {
+            mLocationView = new TextView(mContext);
+            mLocationView.setSingleLine(true);
+            mLocationView.setEllipsize(getTextEllipsis());
+            mLocationView.setTextAppearance(mContext,
+                    android.R.style.TextAppearance_Small);
+            if (mPhotoPosition == PhotoPosition.LEFT) {
+                mLocationView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mCountViewTextSize);
+                mLocationView.setGravity(Gravity.CENTER_VERTICAL);
+            } else {
+                mLocationView.setTypeface(mLabelView.getTypeface(), Typeface.BOLD);
+            }
+            mLocationView.setActivated(isActivated());
+            addView(mLocationView);
+        }
+        return mLocationView;
+    }
+
+    public void setSecondaryActionViewContainer() {
+        getSecondaryActionViewContainer();
+        mSecondaryActionContainerView.setVisibility(View.VISIBLE);
+    }
+
+    public View getSecondaryActionViewContainer() {
+        if (mSecondaryActionContainerView == null) {
+
+            // mSecondaryActionContainerView initialize
+            mSecondaryActionContainerView = inflate(mContext, R.layout.secondary_action, null);
+            mSecondaryActionContainerView.setActivated(isActivated());
+            mSecondaryActionContainerView.setVisibility(View.VISIBLE);
+
+            divider_sub1 = mSecondaryActionContainerView.findViewById(R.id.divider_sub1);
+            divider_sub1.setBackgroundResource(R.drawable.ic_divider_dashed_holo_dark);
+            layoutSub1 = mSecondaryActionContainerView.findViewById(R.id.layout_sub1);
+            callButtonSub1 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_button_sub1);
+            callButtonSub1.setImageResource(R.drawable.ic_ab_dialer_holo_dark);
+            callIconSub1 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_icon_sub1);
+
+            divider_sub2 = mSecondaryActionContainerView.findViewById(R.id.divider_sub2);
+            divider_sub2.setBackgroundResource(R.drawable.ic_divider_dashed_holo_dark);
+            layoutSub2 = mSecondaryActionContainerView.findViewById(R.id.layout_sub2);
+            callButtonSub2 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_button_sub2);
+            callButtonSub2.setImageResource(R.drawable.ic_ab_dialer_holo_dark);
+            callIconSub2 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_icon_sub2);
+
+            int subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
+            try {
+                subInDefault = Settings.Global.getInt(mContext.getContentResolver(),
+                        Settings.Global.MULTI_SIM_VOICE_CALL_SUBSCRIPTION);
+            } catch (SettingNotFoundException e) {
+                subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
+            }
+
+            try {
+                boolean isPromptEnabled = Settings.Global.getInt(mContext.getContentResolver(),
+                        Settings.Global.MULTI_SIM_VOICE_PROMPT) == 0 ? false : true;
+                if (isPromptEnabled)
+                    subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
+            } catch (SettingNotFoundException e) {
+            }
+
+            MoreContactUtils.controlCallIconDisplay(mContext, layoutSub1, callButtonSub1,
+                    callIconSub1, layoutSub2, callButtonSub2, callIconSub2, divider_sub1,
+                    divider_sub2, subInDefault);
+
+            setSecondaryListener(callButtonSub1, MSimConstants.SUB1);
+            setSecondaryListener(callButtonSub2, MSimConstants.SUB2);
+
+            addView(mSecondaryActionContainerView);
+
+        }
+        return mSecondaryActionContainerView;
+    }
+
+    private void setSecondaryListener(ImageView secondaryView, final int subscription) {
+        if (MoreContactUtils.isMultiSimEnable(subscription)) {
+            secondaryView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = CallUtil.getCallIntent(mDataView.getText().toString());
+                    if (MoreContactUtils.getButtonStyle() != MoreContactUtils.DEFAULT_STYLE) {
+                        intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
+                        intent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
+                    }
+                    mContext.startActivity(intent);
+                }
+            });
+        }
     }
 
     /**
