@@ -155,6 +155,8 @@ public class ImportExportDialogFragment extends DialogFragment
     private static final int TOAST_CONTACT_NAME_TOO_LONG = 3;
     // there is a case export is canceled by user
     private static final int TOAST_EXPORT_CANCELED = 4;
+    // only for not have phone number or email address
+    private static final int TOAST_EXPORT_NO_PHONE_OR_EMAIL = 5;
     private static final boolean DEBUG = false;
     private static boolean isMenuItemClicked = false;
     private SimContactsOperation mSimContactsOperation;
@@ -734,6 +736,12 @@ public class ImportExportDialogFragment extends DialogFragment
                             c.close();
                         }
 
+                        if (0 == arrayNumber.size() && 0 == arrayEmail.size()) {
+                            mToastHandler.sendMessage(mToastHandler.obtainMessage(
+                                    TOAST_EXPORT_NO_PHONE_OR_EMAIL, name));
+                            continue;
+                        }
+
                         int phoneCountInOneSimContact = 1;
                         if (canSaveAnr) {
                             phoneCountInOneSimContact = 2;
@@ -938,6 +946,14 @@ public class ImportExportDialogFragment extends DialogFragment
                         int exportCount = msg.arg1;
                         Toast.makeText(mpeople,mpeople.getString(R.string.export_cancelled,
                             String.valueOf(exportCount)), Toast.LENGTH_SHORT).show();
+                        break;
+
+                    // add toast handler when no phone or email
+                    case TOAST_EXPORT_NO_PHONE_OR_EMAIL:
+                        String name = (String) msg.obj;
+                        Toast.makeText(mpeople,
+                                mpeople.getString(R.string.export_no_phone_or_email, name),
+                                Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
