@@ -1041,4 +1041,21 @@ public class MoreContactUtils {
         }
     }
 
+    /** get disabled SIM card's name */
+    public static String getDisabledSimFilter() {
+        int count = MSimTelephonyManager.getDefault().getPhoneCount();
+        StringBuilder simFilter = new StringBuilder("");
+
+        for (int i = 0; i < count; i++) {
+            if (!MSimTelephonyManager.getDefault().hasIccCard(i)) {
+                continue;
+            }
+            if (TelephonyManager.SIM_STATE_UNKNOWN == MSimTelephonyManager
+                    .getDefault().getSimState(i)) {
+                simFilter.append(getSimAccountName(i) + ',');
+            }
+        }
+
+        return simFilter.toString();
+    }
 }
