@@ -760,6 +760,8 @@ a        ren't members of any other group. [CHAR LIMIT=25] -->
 
     <string name="export_cancelled">Export is canceled, <xliff:g id="insertCount">%s</xliff:g>items are exported</string>
 
+    <string name="export_no_phone_or_email">Export failed, <xliff:g id="name">%s</xliff:g>has not phone number or email address</string>
+
     <string name="import_from_sim_select">Choose card to import</string>
 
     <!-- Dialog title shown when (USB) storage does not exist [CHAR LIMIT=25] -->
