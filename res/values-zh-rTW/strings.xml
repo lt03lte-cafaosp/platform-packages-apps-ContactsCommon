@@ -245,6 +245,7 @@
     <string name="export_failed">"導出失敗"</string>
     <string name="sim_card_full">"發生錯誤，SIM卡已滿。"</string>
     <string name="export_finished">"導出結束"</string>
+    <string name="export_no_phone_or_email">導出失敗, <xliff:g id="name">%s</xliff:g>沒有電話號碼或者郵箱地址</string>
     <string name="tag_too_long">"發生錯誤，聯絡人姓名過長。"</string>
     <string name="import_from_sim_select">"選擇SIM卡進行導入"</string>
     <string name="no_sdcard_title" product="nosdcard">"無存儲設備"</string>
