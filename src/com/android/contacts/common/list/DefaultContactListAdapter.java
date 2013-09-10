@@ -36,6 +36,7 @@ import android.view.View;
 
 import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.preference.ContactsPreferences;
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.SimContactsConstants;
 
 import java.util.ArrayList;
@@ -122,7 +123,7 @@ public class DefaultContactListAdapter extends ContactListAdapter {
                         SimAccountType.ACCOUNT_TYPE);
             } else {
                 // Do not show contacts when SIM card is disabled
-                String disabledSimFilter = getDisabledSimFilter();
+                String disabledSimFilter = MoreContactUtils.getDisabledSimFilter();
                 if (!TextUtils.isEmpty(disabledSimFilter)) {
                     appendUriQueryParameterWithoutSim(
                             loader, RawContacts.ACCOUNT_NAME, disabledSimFilter);
@@ -142,33 +143,6 @@ public class DefaultContactListAdapter extends ContactListAdapter {
         }
 
         loader.setSortOrder(sortOrder);
-    }
-
-    /** get disabled SIM card's name */
-    private String getDisabledSimFilter() {
-        int count = MSimTelephonyManager.getDefault().getPhoneCount();
-        StringBuilder simFilter = new StringBuilder("");
-
-        for (int i = 0; i < count; i++) {
-            if (!MSimTelephonyManager.getDefault().hasIccCard(i)) {
-                continue;
-            }
-            if (TelephonyManager.SIM_STATE_UNKNOWN == MSimTelephonyManager
-                    .getDefault().getSimState(i)) {
-                simFilter.append(getSimAccountName(i) + ',');
-            }
-        }
-
-        return simFilter.toString();
-    }
-
-    /** get SIM card's name according to its subscription*/
-    private String getSimAccountName(int subscription) {
-        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-            return SimContactsConstants.SIM_NAME + (subscription + 1);
-        } else {
-            return SimContactsConstants.SIM_NAME;
-        }
     }
 
     protected void configureUri(CursorLoader loader, long directoryId, ContactListFilter filter) {
@@ -230,7 +204,7 @@ public class DefaultContactListAdapter extends ContactListAdapter {
                     break;
                 }
                 // Do not show contacts in disabled SIM card
-                String disabledSimFilter = getDisabledSimFilter();
+                String disabledSimFilter = MoreContactUtils.getDisabledSimFilter();
                 if (!TextUtils.isEmpty(disabledSimFilter)) {
                     appendUriQueryParameterWithoutSim(
                             loader, RawContacts.ACCOUNT_NAME, disabledSimFilter);

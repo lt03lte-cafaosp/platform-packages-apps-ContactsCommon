@@ -35,6 +35,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.account.SimAccountType;
 
@@ -133,6 +134,14 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
 
         // Remove duplicates when it is possible.
         builder.appendQueryParameter(ContactsContract.REMOVE_DUPLICATE_ENTRIES, "true");
+
+        // Do not show contacts in disabled SIM card
+        String disabledSimFilter = MoreContactUtils.getDisabledSimFilter();
+        if (!TextUtils.isEmpty(disabledSimFilter)) {
+            builder.appendQueryParameter(RawContacts.ACCOUNT_NAME, disabledSimFilter);
+            builder.appendQueryParameter(DefaultContactListAdapter
+                    .WITHOUT_SIM_FLAG, "true");
+        }
         loader.setUri(builder.build());
 
         // TODO a projection that includes the search snippet

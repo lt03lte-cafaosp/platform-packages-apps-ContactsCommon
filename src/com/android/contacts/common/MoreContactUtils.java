@@ -36,6 +36,7 @@ import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.telephony.MSimTelephonyManager;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -646,5 +647,42 @@ public class MoreContactUtils {
             styledName = context.getResources().getString(R.string.missing_name);
         }
         return styledName;
+    }
+
+    /**
+     * Get MSimTelephonyManager
+     */
+    private static MSimTelephonyManager getMSimTelephonyManager() {
+        return MSimTelephonyManager.getDefault();
+    }
+
+    /**
+     * Get SIM card account name
+     */
+    public static String getSimAccountName(int subscription) {
+        final String ACCOUNT_NAME_SIM = "SIM";
+        if (getMSimTelephonyManager().isMultiSimEnabled()) {
+            return ACCOUNT_NAME_SIM + (subscription + 1);
+        } else {
+            return ACCOUNT_NAME_SIM;
+        }
+    }
+
+    /** get disabled SIM card's name */
+    public static String getDisabledSimFilter() {
+        int count = MSimTelephonyManager.getDefault().getPhoneCount();
+        StringBuilder simFilter = new StringBuilder("");
+
+        for (int i = 0; i < count; i++) {
+            if (!MSimTelephonyManager.getDefault().hasIccCard(i)) {
+                continue;
+            }
+            if (TelephonyManager.SIM_STATE_UNKNOWN == MSimTelephonyManager
+                    .getDefault().getSimState(i)) {
+                simFilter.append(getSimAccountName(i) + ',');
+            }
+        }
+
+        return simFilter.toString();
     }
 }
