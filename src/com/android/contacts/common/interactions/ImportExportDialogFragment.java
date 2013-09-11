@@ -695,7 +695,8 @@ public class ImportExportDialogFragment extends DialogFragment
                 if (contactList != null) {
                     Iterator<String[]> iterator = contactList.iterator();
                     boolean isSimCardFull = false;
-                    while (iterator.hasNext() && !canceled) {
+                    boolean isAirMode = false;
+                    while (iterator.hasNext() && !canceled && !isAirMode) {
                         String[] contactInfo = iterator.next();
                         String name = "";
                         ArrayList<String> arrayNumber = new ArrayList<String>();
@@ -786,10 +787,9 @@ public class ImportExportDialogFragment extends DialogFragment
                                         break;
                                     } else {
                                         mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
-                                        boolean isAirplane = (System.getInt(
-                                                mpeople.getContentResolver(),
+                                        isAirMode = (System.getInt(mpeople.getContentResolver(),
                                                 System.AIRPLANE_MODE_ON, 0) != 0);
-                                        if (isAirplane) {
+                                        if (isAirMode) {
                                             break;
                                         } else {
                                             continue;
