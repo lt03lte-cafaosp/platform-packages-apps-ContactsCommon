@@ -16,6 +16,7 @@
 package com.android.contacts.common.list;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -60,6 +61,17 @@ public abstract class PinnedHeaderListAdapter extends CompositeCursorAdapter
     protected boolean isPinnedPartitionHeaderVisible(int partition) {
         return mPinnedPartitionHeadersEnabled && hasHeader(partition)
                 && !isPartitionEmpty(partition);
+    }
+
+    @Override
+    public boolean isPartitionEmpty(int partition) {
+        Cursor cursor = getCursor(partition);
+        if (cursor != null && cursor.isClosed()) {
+            // if the specified partition's cursor is not null and is closed,
+            // should not call super to get the cursor count.
+            return true;
+        }
+        return super.isPartitionEmpty(partition);
     }
 
     /**
