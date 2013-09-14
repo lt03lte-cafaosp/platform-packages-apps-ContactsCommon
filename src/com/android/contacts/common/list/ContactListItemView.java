@@ -36,6 +36,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
+import android.telephony.MSimTelephonyManager;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -1085,7 +1086,8 @@ public class ContactListItemView extends ViewGroup
                 @Override
                 public void onClick(View v) {
                     Intent intent = CallUtil.getCallIntent(mDataView.getText().toString());
-                    if (MoreContactUtils.getButtonStyle() != MoreContactUtils.DEFAULT_STYLE) {
+                    if (MSimTelephonyManager.getDefault().isMultiSimEnabled()
+                        && MoreContactUtils.getButtonStyle() != MoreContactUtils.DEFAULT_STYLE) {
                         intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
                         intent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
                     }
