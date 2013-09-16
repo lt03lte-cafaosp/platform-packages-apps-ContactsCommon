@@ -685,7 +685,12 @@ public class MoreContactUtils {
         name = Settings.System.getString(context.getContentResolver(),
                 Settings.System.MULTI_SIM_NAME[subscription]);
         if (TextUtils.isEmpty(name)) {
-            return context.getString(R.string.slot_name) + " " + (subscription + 1);
+            if(getMSimTelephonyManager().getDefault().isMultiSimEnabled()) {
+                return context.getString(R.string.slot_name) + " " + (subscription + 1);
+            }
+            else {
+                return context.getString(R.string.slot_name);
+            }
         }
         return name;
     }
@@ -804,7 +809,7 @@ public class MoreContactUtils {
             if (getSimAccountName(defaultSub).equals(accountName))
                 return defaultSub;
         }
-        return -1;
+        return MSimConstants.DEFAULT_SUBSCRIPTION;
     }
 
     public static String getAccountType(Context mContext, AccountType at, String accountType,
@@ -835,7 +840,7 @@ public class MoreContactUtils {
      * Get two-button style status
      */
     public static int getButtonStyle() {
-        return SystemProperties.getInt("persist.env.dialer.dialbutton",
+        return SystemProperties.getInt("persist.env.c.sys.btnstyle",
                 MoreContactUtils.TWO_BUTTON_STYLE);
     }
 
