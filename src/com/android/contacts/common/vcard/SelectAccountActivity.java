@@ -107,7 +107,7 @@ public class SelectAccountActivity extends Activity {
                 }
                 return AccountSelectionUtil.getSelectAccountDialog(this, resId,
                         mAccountSelectionListener,
-                        new CancelListener());
+                        new CancelListener(), false);
             }
         }
         return super.onCreateDialog(resId, bundle);
