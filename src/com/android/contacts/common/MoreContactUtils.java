@@ -76,9 +76,8 @@ public class MoreContactUtils {
     private static final int MAX_LENGTH_NUMBER_IN_SIM = 20;
     private static final int MAX_LENGTH_EMAIL_IN_SIM = 40;
 
-    public static final int DEFAULT_STYLE = 0;
-    public static final int ONE_BUTTON_STYLE = 1;
-    public static final int TWO_BUTTON_STYLE = 2;
+    public static final boolean ONE_BUTTON_STYLE = false;
+    public static final boolean TWO_BUTTON_STYLE = true;
 
     public static final String SMS = "sms";
     public static final String DIAL_WIDGET_SWITCHED = "dial_widget_switched";
@@ -838,10 +837,16 @@ public class MoreContactUtils {
 
     /**
      * Get two-button style status
+     * if return true , it is two button style
+     * else is one button style
      */
-    public static int getButtonStyle() {
-        return SystemProperties.getInt("persist.env.c.sys.btnstyle",
-                MoreContactUtils.TWO_BUTTON_STYLE);
+    public static boolean getButtonStyle() {
+        if (getMSimTelephonyManager().isMultiSimEnabled()) {
+            return SystemProperties.getBoolean("persist.env.sys.btnstyle",
+                    MoreContactUtils.TWO_BUTTON_STYLE);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -860,17 +865,14 @@ public class MoreContactUtils {
         final boolean onlySub2Enable = !sub1Enable && sub2Enable;
         final boolean bothDisable = !sub1Enable && !sub2Enable;
 
-        // default style
-        if (!MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-            divider_sub2.setVisibility(View.GONE);
-            layoutSub2.setVisibility(View.GONE);
-            buttonSub2.setVisibility(View.GONE);
-            iconSub2.setVisibility(View.GONE);
+        // SSSS mode
+        if (!MoreContactUtils.getMSimTelephonyManager().isMultiSimEnabled()) {
             divider_sub1.setVisibility(View.VISIBLE);
             layoutSub1.setVisibility(View.VISIBLE);
             buttonSub1.setVisibility(View.VISIBLE);
             iconSub1.setVisibility(View.GONE);
-        } else {
+        } else { // DSDS mode
+            // divider's visibility in two button style
             if (MoreContactUtils.getButtonStyle() == MoreContactUtils.TWO_BUTTON_STYLE) {
                 if (bothEnable) {
                     divider_sub1.setVisibility(View.GONE);
@@ -888,34 +890,6 @@ public class MoreContactUtils {
                     divider_sub1.setVisibility(View.GONE);
                     divider_sub2.setVisibility(View.GONE);
                 }
-            } else if (MoreContactUtils.getButtonStyle() == MoreContactUtils.DEFAULT_STYLE) {
-                divider_sub1.setVisibility(View.GONE);
-                if (MSimConstants.SUB1 == showWhichBtnInDef) {
-                    layoutSub1.setVisibility(View.VISIBLE);
-                    buttonSub1.setVisibility(View.VISIBLE);
-                    iconSub1.setVisibility(View.VISIBLE);
-                    iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
-                            MoreContactUtils.FRAMEWORK_ICON, showWhichBtnInDef));
-                } else if (MSimConstants.SUB2 == showWhichBtnInDef) {
-                    layoutSub2.setVisibility(View.VISIBLE);
-                    buttonSub2.setVisibility(View.VISIBLE);
-                    iconSub2.setVisibility(View.VISIBLE);
-                    iconSub2.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
-                            MoreContactUtils.FRAMEWORK_ICON, showWhichBtnInDef));
-                } else if (DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE == showWhichBtnInDef) {
-                    layoutSub1.setVisibility(View.VISIBLE);
-                    buttonSub1.setVisibility(View.VISIBLE);
-                    iconSub1.setVisibility(View.VISIBLE);
-                    iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
-                            MoreContactUtils.FRAMEWORK_ICON, showWhichBtnInDef));
-                } else {
-                    layoutSub1.setVisibility(View.GONE);
-                    buttonSub1.setVisibility(View.GONE);
-                    iconSub1.setVisibility(View.GONE);
-                    layoutSub2.setVisibility(View.GONE);
-                    buttonSub2.setVisibility(View.GONE);
-                    iconSub2.setVisibility(View.GONE);
-                }
             }
         }
     }
@@ -929,8 +903,8 @@ public class MoreContactUtils {
         if (divider_sub2 != null) {
             divider_sub2.setVisibility(View.GONE);
         }
-        // default style(all gone in CallLogDetail QuickContacts ContactDetail)
-        if (!MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+        // SSSS mode (all gone in CallLogDetail QuickContacts ContactDetail)
+        if (!MoreContactUtils.getMSimTelephonyManager().isMultiSimEnabled()) {
             layoutSub1.setVisibility(View.GONE);
             buttonSub1.setVisibility(View.GONE);
             iconSub1.setVisibility(View.GONE);
@@ -938,65 +912,67 @@ public class MoreContactUtils {
             buttonSub2.setVisibility(View.GONE);
             iconSub2.setVisibility(View.GONE);
             return;
-        } else {
-            if (MoreContactUtils.getButtonStyle() == MoreContactUtils.TWO_BUTTON_STYLE) {
-                iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
-                        MoreContactUtils.FRAMEWORK_ICON, MSimConstants.SUB1));
-                iconSub2.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
-                        MoreContactUtils.FRAMEWORK_ICON, MSimConstants.SUB2));
+        }
 
-                boolean isSim1Enable = false;
-                if (MoreContactUtils.isMultiSimEnable(MSimConstants.SUB1)) {
-                    isSim1Enable = true;
-                }
+        // DSDS mode
+        // two button style
+        if (MoreContactUtils.getButtonStyle() == MoreContactUtils.TWO_BUTTON_STYLE) {
+            iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                    MoreContactUtils.FRAMEWORK_ICON, MSimConstants.SUB1));
+            iconSub2.setImageDrawable(MoreContactUtils.getMultiSimIcon(mContext,
+                    MoreContactUtils.FRAMEWORK_ICON, MSimConstants.SUB2));
 
-                boolean isSim2Enable = false;
-                if (MoreContactUtils.isMultiSimEnable(MSimConstants.SUB2)) {
-                    isSim2Enable = true;
-                }
+            boolean isSim1Enable = false;
+            if (MoreContactUtils.isMultiSimEnable(MSimConstants.SUB1)) {
+                isSim1Enable = true;
+            }
 
-                if (isSim1Enable) {
-                    if (isSim2Enable) {
-                        // both enable
-                        layoutSub1.setVisibility(View.VISIBLE);
-                        buttonSub1.setVisibility(View.VISIBLE);
-                        iconSub1.setVisibility(View.VISIBLE);
-                        layoutSub2.setVisibility(View.VISIBLE);
-                        buttonSub2.setVisibility(View.VISIBLE);
-                        iconSub2.setVisibility(View.VISIBLE);
-                        if (divider_sub2 != null) {
-                            divider_sub2.setVisibility(View.VISIBLE);
-                        }
-                    } else {
-                        // Sim1 enable but Sim2 disable
-                        layoutSub1.setVisibility(View.VISIBLE);
-                        buttonSub1.setVisibility(View.VISIBLE);
-                        iconSub1.setVisibility(View.VISIBLE);
-                        layoutSub2.setVisibility(View.GONE);
-                        buttonSub2.setVisibility(View.GONE);
-                        iconSub2.setVisibility(View.GONE);
+            boolean isSim2Enable = false;
+            if (MoreContactUtils.isMultiSimEnable(MSimConstants.SUB2)) {
+                isSim2Enable = true;
+            }
+
+            if (isSim1Enable) {
+                if (isSim2Enable) {
+                    // both enable
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.VISIBLE);
+                    layoutSub2.setVisibility(View.VISIBLE);
+                    buttonSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.VISIBLE);
+                    if (divider_sub2 != null) {
+                        divider_sub2.setVisibility(View.VISIBLE);
                     }
                 } else {
-                    if (isSim2Enable) {
-                        // Sim1 disable but Sim2 enable
-                        layoutSub1.setVisibility(View.GONE);
-                        buttonSub1.setVisibility(View.GONE);
-                        iconSub1.setVisibility(View.GONE);
-                        layoutSub2.setVisibility(View.VISIBLE);
-                        buttonSub2.setVisibility(View.VISIBLE);
-                        iconSub2.setVisibility(View.VISIBLE);
-                    } else {
-                        // both disable
-                        layoutSub1.setVisibility(View.GONE);
-                        buttonSub1.setVisibility(View.GONE);
-                        iconSub1.setVisibility(View.GONE);
-                        layoutSub2.setVisibility(View.GONE);
-                        buttonSub2.setVisibility(View.GONE);
-                        iconSub2.setVisibility(View.GONE);
-                    }
+                    // Sim1 enable but Sim2 disable
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.VISIBLE);
+                    layoutSub2.setVisibility(View.GONE);
+                    buttonSub2.setVisibility(View.GONE);
+                    iconSub2.setVisibility(View.GONE);
                 }
-                return;
+            } else {
+                if (isSim2Enable) {
+                    // Sim1 disable but Sim2 enable
+                    layoutSub1.setVisibility(View.GONE);
+                    buttonSub1.setVisibility(View.GONE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.VISIBLE);
+                    buttonSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.VISIBLE);
+                } else {
+                    // both disable
+                    layoutSub1.setVisibility(View.GONE);
+                    buttonSub1.setVisibility(View.GONE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.GONE);
+                    buttonSub2.setVisibility(View.GONE);
+                    iconSub2.setVisibility(View.GONE);
+                }
             }
+            return;
         }
     }
 
