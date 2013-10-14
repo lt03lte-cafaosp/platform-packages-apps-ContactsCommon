@@ -189,22 +189,22 @@ public class DefaultContactListAdapter extends ContactListAdapter {
         StringBuilder selection = new StringBuilder();
         List<String> selectionArgs = new ArrayList<String>();
 
+        boolean isAirMode = Settings.System.getInt(
+                getContext().getContentResolver(),Settings.System.AIRPLANE_MODE_ON,
+                AIRPLANE_MODE_OFF_VALUE) == AIRPLANE_MODE_ON_VALUE;
+        String disabledSimFilter = MoreContactUtils.getDisabledSimFilter();
+
         switch (filter.filterType) {
             case ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS: {
                 // We have already added directory=0 to the URI, which takes care of this
                 // filter
                 // Do not show contacts in SIM card when airplane mode is on
-                boolean isAirMode = Settings.System.getInt(
-                        getContext().getContentResolver(),Settings.System.AIRPLANE_MODE_ON,
-                        AIRPLANE_MODE_OFF_VALUE) == AIRPLANE_MODE_ON_VALUE;
-
                 if (isAirMode) {
                     appendUriQueryParameterWithoutSim(
                             loader, RawContacts.ACCOUNT_TYPE, SimAccountType.ACCOUNT_TYPE);
                     break;
                 }
                 // Do not show contacts in disabled SIM card
-                String disabledSimFilter = MoreContactUtils.getDisabledSimFilter();
                 if (!TextUtils.isEmpty(disabledSimFilter)) {
                     appendUriQueryParameterWithoutSim(
                             loader, RawContacts.ACCOUNT_NAME, disabledSimFilter);
@@ -228,6 +228,17 @@ public class DefaultContactListAdapter extends ContactListAdapter {
                 selection.append(Contacts.IN_VISIBLE_GROUP + "=1");
                 if (isCustomFilterForPhoneNumbersOnly()) {
                     selection.append(" AND " + Contacts.HAS_PHONE_NUMBER + "=1");
+                }
+                // Do not show contacts in SIM card when airplane mode is on
+                if (isAirMode) {
+                    appendUriQueryParameterWithoutSim(
+                            loader, RawContacts.ACCOUNT_TYPE, SimAccountType.ACCOUNT_TYPE);
+                    break;
+                }
+                // Do not show contacts in disabled SIM card
+                if (!TextUtils.isEmpty(disabledSimFilter)) {
+                    appendUriQueryParameterWithoutSim(
+                            loader, RawContacts.ACCOUNT_NAME, disabledSimFilter);
                 }
                 break;
             }
