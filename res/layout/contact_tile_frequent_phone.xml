@@ -20,7 +20,6 @@
     android:id="@+id/contact_tile_frequent_phone"
     class="com.android.contacts.common.list.ContactTilePhoneFrequentView"
     android:focusable="true"
-    android:background="?android:attr/selectableItemBackground"
     android:nextFocusLeft="@+id/contact_tile_quick">
 
     <RelativeLayout
@@ -39,7 +38,7 @@
 
         <TextView
             android:id="@+id/contact_tile_name"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dip"
             android:layout_marginStart="8dip"
@@ -53,9 +52,35 @@
             android:ellipsize="marquee"
             android:textAlignment="viewStart" />
 
+        <TextView
+            android:id="@+id/contact_tile_phone_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dip"
+            android:layout_marginStart="8dip"
+            android:layout_marginTop="8dip"
+            android:layout_toEndOf="@id/contact_tile_name"
+            android:layout_toRightOf="@id/contact_tile_name"
+            android:ellipsize="marquee"
+            android:gravity="end"
+            android:singleLine="true"
+            android:textAllCaps="true"
+            android:textColor="@color/dialtacts_secondary_text_color"
+            android:textSize="12sp" />
+
+        <ViewStub
+            android:id="@+id/secondary_action_stub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dip"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:visibility="gone"
+            android:layout="@layout/secondary_action" />
+
         <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/contact_tile_name"
             android:layout_toRightOf="@id/contact_tile_quick"
@@ -76,21 +101,6 @@
                 android:layout_gravity="bottom"
                 android:textDirection="ltr"
                 android:textAlignment="viewStart" />
-
-            <TextView
-                android:id="@+id/contact_tile_phone_type"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_weight="?attr/list_item_label_width_weight"
-                android:textSize="12sp"
-                android:ellipsize="marquee"
-                android:singleLine="true"
-                android:textAllCaps="true"
-                android:textColor="@color/dialtacts_secondary_text_color"
-                android:layout_marginLeft="8dip"
-                android:layout_marginStart="8dip"
-                android:gravity="end"
-                android:layout_gravity="bottom" />
 
         </LinearLayout>
 
