@@ -637,6 +637,15 @@ class AccountTypeManagerImpl extends AccountTypeManager
         }
     }
 
+    private boolean isSimAccountInvalid(Account account) {
+        final String ACCOUNT_NAME_SIM = "SIM";
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+            if (account.name.equals(ACCOUNT_NAME_SIM))
+                return true;
+        }
+        return false;
+    }
+
     private int getSubscription(String accountType, String accountName){
         int subscription = -1;
         if (accountType == null || accountName == null) {
@@ -667,6 +676,9 @@ class AccountTypeManagerImpl extends AccountTypeManager
             }
 
             if (isSimStateUnknown(accountWithDataSet)) {
+                continue outer;
+            }
+            if (isSimAccountInvalid(accountWithDataSet)) {
                 continue outer;
             }
             tempList.add(accountWithDataSet);

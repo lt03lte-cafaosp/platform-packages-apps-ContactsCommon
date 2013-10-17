@@ -117,6 +117,7 @@ public class ContactListItemView extends ViewGroup
     private Drawable mHorizontalDividerDrawable;
     private int mHorizontalDividerHeight;
 
+    private final int PHOTO_GAP = 5;
     /**
      * Where to put contact photo. This affects the other Views' layout or look-and-feel.
      *
@@ -298,12 +299,10 @@ public class ContactListItemView extends ViewGroup
         setPaddingRelative(
                 a.getDimensionPixelOffset(
                         R.styleable.ContactListItemView_list_item_padding_left, 0),
-                a.getDimensionPixelOffset(
-                        R.styleable.ContactListItemView_list_item_padding_top, 0),
+                        PHOTO_GAP,
                 a.getDimensionPixelOffset(
                         R.styleable.ContactListItemView_list_item_padding_right, 0),
-                a.getDimensionPixelOffset(
-                        R.styleable.ContactListItemView_list_item_padding_bottom, 0));
+                        PHOTO_GAP);
 
         final int prefixHighlightColor = a.getColor(
                 R.styleable.ContactListItemView_list_item_prefix_highlight_color, Color.GREEN);
