@@ -84,7 +84,10 @@ public class ProfileAndContactsLoader extends CursorLoader {
             }
             return matrix;
         } finally {
-            cursor.close();
+            //add null check for monkey test
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 }
