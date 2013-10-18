@@ -28,6 +28,7 @@
             android:id="@+id/contact_tile_quick"
             android:layout_width="64dip"
             android:layout_height="64dip"
+            android:layout_marginTop="@dimen/dsds_photo_gap"
             android:layout_alignParentEnd="true"
             android:scaleType="centerCrop"
             android:focusable="true" />
@@ -73,6 +74,7 @@
             android:id="@+id/contact_tile_horizontal_divider"
             android:layout_width="match_parent"
             android:layout_height="1px"
+            android:layout_marginTop="@dimen/dsds_photo_gap"
             android:background="?android:attr/listDivider"
             android:layout_below="@id/contact_tile_quick" />
 
