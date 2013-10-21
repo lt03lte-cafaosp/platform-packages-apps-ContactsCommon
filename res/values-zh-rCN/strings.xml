@@ -175,6 +175,7 @@
     <string name="fail_reason_too_many_vcard" product="nosdcard" msgid="8720294715223591581">"存储设备中的 vCard 文件过多。"</string>
     <string name="fail_reason_too_many_vcard" product="default" msgid="3793454448838716962">"存储设备中的 vCard 文件过多。"</string>
     <string name="fail_reason_io_error" msgid="7736686553669161933">"I/O 错误"</string>
+    <string name="fail_reason_import_vcard">I/O 错误，无法导入 vCard <xliff:g id="name">%s</xliff:g></string>
     <string name="fail_reason_low_memory_during_import" msgid="3277485820827338116">"内存不足。该文件可能过大。"</string>
     <string name="fail_reason_vcard_parse_error" msgid="514012644716565082">"由于意外原因而无法解析 vCard。"</string>
     <string name="fail_reason_not_supported" msgid="388664373573337601">"不支持此格式。"</string>
