@@ -92,5 +92,5 @@
     <dimen name="dsds_vertical_divider_width">1dip</dimen>
     <dimen name="dsds_vertical_divider_height">-1dip</dimen>
 
-    <dimen name="dsds_photo_gap">3dip</dimen>
+    <dimen name="dsds_photo_gap">1dip</dimen>
 </resources>

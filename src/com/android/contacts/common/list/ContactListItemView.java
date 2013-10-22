@@ -117,7 +117,7 @@ public class ContactListItemView extends ViewGroup
     private Drawable mHorizontalDividerDrawable;
     private int mHorizontalDividerHeight;
 
-    private final int PHOTO_GAP = 5;
+    private final int PHOTO_GAP = 1;
     /**
      * Where to put contact photo. This affects the other Views' layout or look-and-feel.
      *
