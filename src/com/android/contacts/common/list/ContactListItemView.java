@@ -592,7 +592,7 @@ public class ContactListItemView extends ViewGroup
             int nameWidth = mNameTextView.getMeasuredWidth();
             mNameTextView.layout(leftBound,
                     textTopBound,
-                    leftBound + nameWidth,
+                    rightBound,
                     textTopBound + mNameTextViewHeight);
             nameLeftBound = leftBound + nameWidth + mTextIndent;
         }
