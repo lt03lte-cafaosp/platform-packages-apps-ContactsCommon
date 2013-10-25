@@ -1109,12 +1109,15 @@ public class ContactListItemView extends ViewGroup
      * Adds or updates a text view for the data element.
      */
     public void setData(char[] text, int size, int dataColumnIndex) {
-        refreshButton();
         if (text == null || size == 0) {
             if (mDataView != null) {
                 mDataView.setVisibility(View.GONE);
             }
+            if (mSecondaryActionContainerView != null) {
+                removeView(mSecondaryActionContainerView);
+            }
         } else {
+            refreshButton();
             getDataView();
             setMarqueeText(mDataView, text, size);
             mDataView.setVisibility(VISIBLE);
