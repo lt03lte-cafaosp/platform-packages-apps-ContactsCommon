@@ -147,29 +147,32 @@ public class DirectoryListLoader extends AsyncTaskLoader<Cursor> {
 
         Cursor cursor = context.getContentResolver().query(DirectoryQuery.URI,
                 DirectoryQuery.PROJECTION, selection, null, DirectoryQuery.ORDER_BY);
-        try {
-            while(cursor.moveToNext()) {
-                long directoryId = cursor.getLong(DirectoryQuery.ID);
-                String directoryType = null;
+        if (cursor != null) {
+            try {
+                while (cursor.moveToNext()) {
+                    long directoryId = cursor.getLong(DirectoryQuery.ID);
+                    String directoryType = null;
 
-                String packageName = cursor.getString(DirectoryQuery.PACKAGE_NAME);
-                int typeResourceId = cursor.getInt(DirectoryQuery.TYPE_RESOURCE_ID);
-                if (!TextUtils.isEmpty(packageName) && typeResourceId != 0) {
-                    try {
-                        directoryType = pm.getResourcesForApplication(packageName)
-                                .getString(typeResourceId);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Cannot obtain directory type from package: " + packageName);
+                    String packageName = cursor.getString(DirectoryQuery.PACKAGE_NAME);
+                    int typeResourceId = cursor.getInt(DirectoryQuery.TYPE_RESOURCE_ID);
+                    if (!TextUtils.isEmpty(packageName) && typeResourceId != 0) {
+                        try {
+                            directoryType = pm.getResourcesForApplication(packageName)
+                                    .getString(typeResourceId);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Cannot obtain directory type from package: " + packageName);
+                        }
                     }
+                    String displayName = cursor.getString(DirectoryQuery.DISPLAY_NAME);
+                    int photoSupport = cursor.getInt(DirectoryQuery.PHOTO_SUPPORT);
+                    result.addRow(new Object[] {
+                            directoryId, directoryType, displayName, photoSupport
+                    });
                 }
-                String displayName = cursor.getString(DirectoryQuery.DISPLAY_NAME);
-                int photoSupport = cursor.getInt(DirectoryQuery.PHOTO_SUPPORT);
-                result.addRow(new Object[]{directoryId, directoryType, displayName, photoSupport});
+            } finally {
+                cursor.close();
             }
-        } finally {
-            cursor.close();
         }
-
         return result;
     }
 
