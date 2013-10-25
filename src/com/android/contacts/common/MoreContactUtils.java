@@ -887,7 +887,7 @@ public class MoreContactUtils {
                     divider_sub2.setVisibility(View.VISIBLE);
                 }
                 if (bothDisable) {
-                    divider_sub1.setVisibility(View.GONE);
+                    divider_sub1.setVisibility(View.VISIBLE);
                     divider_sub2.setVisibility(View.GONE);
                 }
             }
@@ -948,7 +948,7 @@ public class MoreContactUtils {
                     // Sim1 enable but Sim2 disable
                     layoutSub1.setVisibility(View.VISIBLE);
                     buttonSub1.setVisibility(View.VISIBLE);
-                    iconSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.GONE);
                     layoutSub2.setVisibility(View.GONE);
                     buttonSub2.setVisibility(View.GONE);
                     iconSub2.setVisibility(View.GONE);
@@ -961,11 +961,11 @@ public class MoreContactUtils {
                     iconSub1.setVisibility(View.GONE);
                     layoutSub2.setVisibility(View.VISIBLE);
                     buttonSub2.setVisibility(View.VISIBLE);
-                    iconSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.GONE);
                 } else {
                     // both disable
-                    layoutSub1.setVisibility(View.GONE);
-                    buttonSub1.setVisibility(View.GONE);
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
                     iconSub1.setVisibility(View.GONE);
                     layoutSub2.setVisibility(View.GONE);
                     buttonSub2.setVisibility(View.GONE);
