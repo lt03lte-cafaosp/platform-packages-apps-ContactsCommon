@@ -344,6 +344,8 @@ public abstract class AccountType {
             int sub = MoreContactUtils.getSubFromAccountName(accountName);
             return MoreContactUtils.getMultiSimIcon(context, MoreContactUtils.CONTACTSCOMMON_ICON,
                     sub);
+        } else if (PhoneAccountType.ACCOUNT_TYPE.equals(accountType)) {
+            return context.getResources().getDrawable(R.drawable.phone_account);
         }
 
         return getDisplayIcon(context);

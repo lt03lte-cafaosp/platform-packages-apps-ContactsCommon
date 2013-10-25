@@ -317,7 +317,14 @@ public class ImportExportDialogFragment extends DialogFragment
             mAdapter.add(R.string.import_from_sdcard);
         }
 
-        boolean hasContact = hasContacts();
+        boolean hasContact = false;
+        if (contactsAreAvailable) {
+            // if contacts are available, it must has contacts.
+            hasContact = true;
+        } else {
+            // make sure whether DB has contacts or not
+            hasContact = hasContacts();
+        }
 
         if (hasIccCard && hasContact) {
             mAdapter.add(R.string.export_to_sim);

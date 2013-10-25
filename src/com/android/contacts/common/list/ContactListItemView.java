@@ -32,11 +32,11 @@ import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.provider.ContactsContract.Contacts;
 import android.provider.Settings.SettingNotFoundException;
+import android.telephony.MSimTelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
-import android.telephony.MSimTelephonyManager;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -117,6 +117,7 @@ public class ContactListItemView extends ViewGroup
     private Drawable mHorizontalDividerDrawable;
     private int mHorizontalDividerHeight;
 
+    private final int PHOTO_GAP = 1;
     /**
      * Where to put contact photo. This affects the other Views' layout or look-and-feel.
      *
@@ -298,12 +299,10 @@ public class ContactListItemView extends ViewGroup
         setPaddingRelative(
                 a.getDimensionPixelOffset(
                         R.styleable.ContactListItemView_list_item_padding_left, 0),
-                a.getDimensionPixelOffset(
-                        R.styleable.ContactListItemView_list_item_padding_top, 0),
+                        PHOTO_GAP,
                 a.getDimensionPixelOffset(
                         R.styleable.ContactListItemView_list_item_padding_right, 0),
-                a.getDimensionPixelOffset(
-                        R.styleable.ContactListItemView_list_item_padding_bottom, 0));
+                        PHOTO_GAP);
 
         final int prefixHighlightColor = a.getColor(
                 R.styleable.ContactListItemView_list_item_prefix_highlight_color, Color.GREEN);
@@ -593,7 +592,7 @@ public class ContactListItemView extends ViewGroup
             int nameWidth = mNameTextView.getMeasuredWidth();
             mNameTextView.layout(leftBound,
                     textTopBound,
-                    leftBound + nameWidth,
+                    rightBound,
                     textTopBound + mNameTextViewHeight);
             nameLeftBound = leftBound + nameWidth + mTextIndent;
         }
@@ -1052,19 +1051,21 @@ public class ContactListItemView extends ViewGroup
                     .findViewById(R.id.call_icon_sub2);
 
             int subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
-            try {
-                subInDefault = Settings.Global.getInt(mContext.getContentResolver(),
-                        Settings.Global.MULTI_SIM_VOICE_CALL_SUBSCRIPTION);
-            } catch (SettingNotFoundException e) {
-                subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
-            }
-
-            try {
-                boolean isPromptEnabled = Settings.Global.getInt(mContext.getContentResolver(),
-                        Settings.Global.MULTI_SIM_VOICE_PROMPT) == 0 ? false : true;
-                if (isPromptEnabled)
+            if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                try {
+                    subInDefault = Settings.Global.getInt(mContext.getContentResolver(),
+                            Settings.Global.MULTI_SIM_VOICE_CALL_SUBSCRIPTION);
+                } catch (SettingNotFoundException e) {
                     subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
-            } catch (SettingNotFoundException e) {
+                }
+
+                try {
+                    boolean isPromptEnabled = Settings.Global.getInt(mContext.getContentResolver(),
+                            Settings.Global.MULTI_SIM_VOICE_PROMPT) == 0 ? false : true;
+                    if (isPromptEnabled)
+                        subInDefault = MoreContactUtils.DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE;
+                } catch (SettingNotFoundException e) {
+                }
             }
 
             MoreContactUtils.controlCallIconDisplay(mContext, layoutSub1, callButtonSub1,
@@ -1086,8 +1087,7 @@ public class ContactListItemView extends ViewGroup
                 @Override
                 public void onClick(View v) {
                     Intent intent = CallUtil.getCallIntent(mDataView.getText().toString());
-                    if (MSimTelephonyManager.getDefault().isMultiSimEnabled()
-                        && MoreContactUtils.getButtonStyle() != MoreContactUtils.DEFAULT_STYLE) {
+                    if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
                         intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
                         intent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
                     }
