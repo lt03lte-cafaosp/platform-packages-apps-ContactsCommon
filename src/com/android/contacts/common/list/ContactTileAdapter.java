@@ -15,6 +15,7 @@
  */
 package com.android.contacts.common.list;
 
+import android.accounts.Account;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.res.Resources;
@@ -66,6 +67,8 @@ public class ContactTileAdapter extends BaseAdapter {
     protected int mNameIndex;
     protected int mPresenceIndex;
     protected int mStatusIndex;
+    private int mAccountTypeIndex = -1;
+    private int mAccountNameIndex = -1;
 
     /**
      * Only valid when {@link DisplayType#STREQUENT_PHONE_ONLY} is true
@@ -162,6 +165,9 @@ public class ContactTileAdapter extends BaseAdapter {
         mPhoneNumberIndex = ContactTileLoaderFactory.PHONE_NUMBER;
         mPhoneNumberTypeIndex = ContactTileLoaderFactory.PHONE_NUMBER_TYPE;
         mPhoneNumberLabelIndex = ContactTileLoaderFactory.PHONE_NUMBER_LABEL;
+
+        mAccountTypeIndex = ContactTileLoaderFactory.ACCOUNT_TYPE;
+        mAccountNameIndex = ContactTileLoaderFactory.ACCOUNT_NAME;
     }
 
     /**
@@ -288,6 +294,13 @@ public class ContactTileAdapter extends BaseAdapter {
             contact.status = statusMessage;
         }
 
+        if (!cursor.isNull(mAccountTypeIndex) && !cursor.isNull(mAccountTypeIndex)) {
+            final String accountType = cursor.getString(mAccountTypeIndex);
+            final String accountName = cursor.getString(mAccountNameIndex);
+            contact.account = new Account(accountName, accountType);
+        } else {
+            contact.account = null;
+        }
         return contact;
     }
 
@@ -663,6 +676,7 @@ public class ContactTileAdapter extends BaseAdapter {
         public Uri photoUri;
         public Uri lookupKey;
         public Drawable presenceIcon;
+        public Account account;
     }
 
     protected static class ViewTypes {

@@ -15,6 +15,7 @@
  */
 package com.android.contacts.common.list;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -122,17 +123,19 @@ public abstract class ContactTileView extends FrameLayout {
 
             setVisibility(View.VISIBLE);
 
+            Account account = entry.account;
+
             if (mPhotoManager != null) {
                 if (mPhoto != null) {
-                    mPhotoManager.loadPhoto(mPhoto, entry.photoUri, getApproximateImageSize(),
-                            isDarkTheme());
+                    mPhotoManager.loadPhoto(mPhoto, entry.photoUri, account,
+                            getApproximateImageSize(), isDarkTheme());
 
                     if (mQuickContact != null) {
                         mQuickContact.assignContactUri(mLookupUri);
                     }
                 } else if (mQuickContact != null) {
                     mQuickContact.assignContactUri(mLookupUri);
-                    mPhotoManager.loadPhoto(mQuickContact, entry.photoUri,
+                    mPhotoManager.loadPhoto(mQuickContact, entry.photoUri, account,
                             getApproximateImageSize(), isDarkTheme());
                 }
             } else {

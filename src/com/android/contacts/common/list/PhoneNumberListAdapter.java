@@ -15,6 +15,7 @@
  */
 package com.android.contacts.common.list;
 
+import android.accounts.Account;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -63,6 +64,8 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
             Phone.LOOKUP_KEY,                   // 5
             Phone.PHOTO_ID,                     // 6
             Phone.DISPLAY_NAME_PRIMARY,         // 7
+            RawContacts.ACCOUNT_TYPE,           // 8
+            RawContacts.ACCOUNT_NAME,           // 9
         };
 
         private static final String[] PROJECTION_ALTERNATIVE = new String[] {
@@ -74,6 +77,8 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
             Phone.LOOKUP_KEY,                   // 5
             Phone.PHOTO_ID,                     // 6
             Phone.DISPLAY_NAME_ALTERNATIVE,     // 7
+            RawContacts.ACCOUNT_TYPE,           // 8
+            RawContacts.ACCOUNT_NAME,           // 9
         };
 
         public static final int PHONE_ID           = 0;
@@ -84,6 +89,8 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
         public static final int PHONE_LOOKUP_KEY   = 5;
         public static final int PHONE_PHOTO_ID     = 6;
         public static final int PHONE_DISPLAY_NAME = 7;
+        public static final int PHONE_ACCOUNT_TYPE = 8;
+        public static final int PHONE_ACCOUNT_NAME = 9;
     }
 
     private final CharSequence mUnknownNameText;
@@ -275,7 +282,8 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
                 // No need for photo uri here, because we can not have directory results. If we
                 // ever do, we need to add photo uri to the query
                 bindQuickContact(view, partition, cursor, PhoneQuery.PHONE_PHOTO_ID, -1,
-                        PhoneQuery.PHONE_CONTACT_ID, PhoneQuery.PHONE_LOOKUP_KEY);
+                        PhoneQuery.PHONE_CONTACT_ID, PhoneQuery.PHONE_LOOKUP_KEY,
+                        PhoneQuery.PHONE_ACCOUNT_TYPE, PhoneQuery.PHONE_ACCOUNT_NAME);
             } else {
                 bindPhoto(view, cursor);
             }
@@ -327,7 +335,14 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
             photoId = cursor.getLong(PhoneQuery.PHONE_PHOTO_ID);
         }
 
-        getPhotoLoader().loadThumbnail(view.getPhotoView(), photoId, false);
+        Account account = null;
+        if (!cursor.isNull(PhoneQuery.PHONE_ACCOUNT_TYPE)
+                && !cursor.isNull(PhoneQuery.PHONE_ACCOUNT_NAME)) {
+            final String accountType = cursor.getString(PhoneQuery.PHONE_ACCOUNT_TYPE);
+            final String accountName = cursor.getString(PhoneQuery.PHONE_ACCOUNT_NAME);
+            account = new Account(accountName, accountType);
+        }
+        getPhotoLoader().loadThumbnail(view.getPhotoView(), photoId, account, false);
     }
 
     public void setPhotoPosition(ContactListItemView.PhotoPosition photoPosition) {
