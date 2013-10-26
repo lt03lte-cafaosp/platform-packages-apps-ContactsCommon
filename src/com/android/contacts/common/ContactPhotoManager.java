@@ -16,6 +16,7 @@
 
 package com.android.contacts.common;
 
+import android.accounts.Account;
 import android.content.ComponentCallbacks2;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -42,12 +43,14 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Photo;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.Directory;
+import android.telephony.MSimTelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.LruCache;
 import android.util.TypedValue;
 import android.widget.ImageView;
 
+import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.util.BitmapUtil;
 import com.android.contacts.common.util.MemoryUtils;
 import com.android.contacts.common.util.UriUtils;
@@ -82,7 +85,8 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
      * Returns the resource id of the default avatar. Tries to find a resource that is bigger
      * than the given extent (width or height). If extent=-1, a thumbnail avatar is returned
      */
-    public static int getDefaultAvatarResId(Context context, int extent, boolean darkTheme) {
+    public static int getDefaultAvatarResId(Context context, Account account, int extent,
+            boolean darkTheme) {
         // TODO: Is it worth finding a nicer way to do hires/lores here? In practice, the
         // default avatar doesn't look too different when stretched
         if (s180DipInPixel == -1) {
@@ -92,7 +96,7 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
         }
 
         final boolean hires = (extent != -1) && (extent > s180DipInPixel);
-        return getDefaultAvatarResId(hires, darkTheme);
+        return getDefaultAvatarResId(context, account, hires, darkTheme);
     }
 
     public static int getDefaultAvatarResId(boolean hires, boolean darkTheme) {
@@ -102,18 +106,66 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
         return R.drawable.ic_contact_picture_holo_light;
     }
 
+    public static int getDefaultAvatarResId(Context context, Account account,
+            boolean hires, boolean darkTheme) {
+
+        // Special for sim account
+        if (account != null && SimAccountType.ACCOUNT_TYPE.equals(account.type)) {
+            return getSimPhotoResIdByAccountName(context, hires, darkTheme, account.name);
+        } else {
+            return getDefaultAvatarResId(hires, darkTheme);
+        }
+    }
+
+    private static int getSimPhotoResIdByAccountName(Context context, boolean hires,
+            boolean darkTheme, String name) {
+
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+            final int subscription = MoreContactUtils.getSubFromAccountName(name);
+            int index = MoreContactUtils.getCurrentSimIconIndex(context, subscription);
+            if (index < 0) {
+                return getDefaultAvatarResId(hires, darkTheme);
+            } else {
+                final int[] res;
+                if (hires && darkTheme)
+                    res = MoreContactUtils.IC_CONTACT_PICTURE_180_HOLO_DARKS;
+                else if (hires)
+                    res = MoreContactUtils.IC_CONTACT_PICTURE_180_HOLO_LIGHTS;
+                else if (darkTheme)
+                    res = MoreContactUtils.IC_CONTACT_PICTURE_HOLO_DARKS;
+                else
+                    res = MoreContactUtils.IC_CONTACT_PICTURE_HOLO_LIGHTS;
+
+                return res[index];
+            }
+        } else { // SSS Mode
+            if (hires && darkTheme)
+                return MoreContactUtils.IC_CONTACT_PICTURE_180_HOLO_DARK_SIM;
+            if (hires)
+                return MoreContactUtils.IC_CONTACT_PICTURE_180_HOLO_LIGHT_SIM;
+            if (darkTheme)
+                return MoreContactUtils.IC_CONTACT_PICTURE_HOLO_DARK_SIM;
+            return MoreContactUtils.IC_CONTACT_PICTURE_HOLO_LIGHT_SIM;
+        }
+    }
+
     public static abstract class DefaultImageProvider {
         /**
          * Applies the default avatar to the ImageView. Extent is an indicator for the size (width
          * or height). If darkTheme is set, the avatar is one that looks better on dark background
+         * when account is null, it would not show Sim Contact's default avatar.
          */
-        public abstract void applyDefaultImage(ImageView view, int extent, boolean darkTheme);
+        public abstract void applyDefaultImage(ImageView view, Account account, int extent,
+                boolean darkTheme);
     }
 
     private static class AvatarDefaultImageProvider extends DefaultImageProvider {
         @Override
-        public void applyDefaultImage(ImageView view, int extent, boolean darkTheme) {
-            view.setImageResource(getDefaultAvatarResId(view.getContext(), extent, darkTheme));
+        public void applyDefaultImage(ImageView view, Account account, int extent,
+                boolean darkTheme) {
+            view.setImageResource(getDefaultAvatarResId(view.getContext(), account, extent,
+                    darkTheme));
+
         }
     }
 
@@ -121,7 +173,8 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
         private static Drawable sDrawable;
 
         @Override
-        public void applyDefaultImage(ImageView view, int extent, boolean darkTheme) {
+        public void applyDefaultImage(ImageView view, Account account, int extent,
+                boolean darkTheme) {
             if (sDrawable == null) {
                 Context context = view.getContext();
                 sDrawable = new ColorDrawable(context.getResources().getColor(
@@ -155,8 +208,8 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
      * it is displayed immediately.  Otherwise a request is sent to load the photo
      * from the database.
      */
-    public abstract void loadThumbnail(ImageView view, long photoId, boolean darkTheme,
-            DefaultImageProvider defaultProvider);
+    public abstract void loadThumbnail(ImageView view, long photoId, Account account,
+            boolean darkTheme, DefaultImageProvider defaultProvider);
 
     public abstract void clear();
 
@@ -164,8 +217,9 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
      * Calls {@link #loadThumbnail(ImageView, long, boolean, DefaultImageProvider)} with
      * {@link #DEFAULT_AVATAR}.
      */
-    public final void loadThumbnail(ImageView view, long photoId, boolean darkTheme) {
-        loadThumbnail(view, photoId, darkTheme, DEFAULT_AVATAR);
+    public final void loadThumbnail(ImageView view, long photoId, Account account,
+            boolean darkTheme) {
+        loadThumbnail(view, photoId, account, darkTheme, DEFAULT_AVATAR);
     }
 
     /**
@@ -174,6 +228,7 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
      * from the location specified by the URI.
      * @param view The target view
      * @param photoUri The uri of the photo to load
+     * @param account The account of the photo to load
      * @param requestedExtent Specifies an approximate Max(width, height) of the targetView.
      * This is useful if the source image can be a lot bigger that the target, so that the decoding
      * is done using efficient sampling. If requestedExtent is specified, no sampling of the image
@@ -182,24 +237,25 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
      * @param defaultProvider The provider of default avatars (this is used if photoUri doesn't
      * refer to an existing image)
      */
-    public abstract void loadPhoto(ImageView view, Uri photoUri, int requestedExtent,
-            boolean darkTheme, DefaultImageProvider defaultProvider);
+    public abstract void loadPhoto(ImageView view, Uri photoUri, Account account,
+            int requestedExtent, boolean darkTheme, DefaultImageProvider defaultProvider);
 
     /**
      * Calls {@link #loadPhoto(ImageView, Uri, boolean, boolean, DefaultImageProvider)} with
      * {@link #DEFAULT_AVATAR}.
      */
-    public final void loadPhoto(ImageView view, Uri photoUri, int requestedExtent,
-            boolean darkTheme) {
-        loadPhoto(view, photoUri, requestedExtent, darkTheme, DEFAULT_AVATAR);
+    public final void loadPhoto(ImageView view, Uri photoUri, Account account,
+            int requestedExtent, boolean darkTheme) {
+        loadPhoto(view, photoUri, account, requestedExtent, darkTheme, DEFAULT_AVATAR);
     }
 
     /**
      * Calls {@link #loadPhoto(ImageView, Uri, boolean, boolean, DefaultImageProvider)} with
      * {@link #DEFAULT_AVATAR} and with the assumption, that the image is a thumbnail
      */
-    public final void loadDirectoryPhoto(ImageView view, Uri photoUri, boolean darkTheme) {
-        loadPhoto(view, photoUri, -1, darkTheme, DEFAULT_AVATAR);
+    public final void loadDirectoryPhoto(ImageView view, Uri photoUri, Account account,
+            boolean darkTheme) {
+        loadPhoto(view, photoUri, account, -1, darkTheme, DEFAULT_AVATAR);
     }
 
     /**
@@ -467,11 +523,11 @@ class ContactPhotoManagerImpl extends ContactPhotoManager implements Callback {
     }
 
     @Override
-    public void loadThumbnail(ImageView view, long photoId, boolean darkTheme,
+    public void loadThumbnail(ImageView view, long photoId, Account account, boolean darkTheme,
             DefaultImageProvider defaultProvider) {
         if (photoId == 0) {
             // No photo is needed
-            defaultProvider.applyDefaultImage(view, -1, darkTheme);
+            defaultProvider.applyDefaultImage(view, account, -1, darkTheme);
             mPendingRequests.remove(view);
         } else {
             if (DEBUG) Log.d(TAG, "loadPhoto request: " + photoId);
@@ -481,11 +537,11 @@ class ContactPhotoManagerImpl extends ContactPhotoManager implements Callback {
     }
 
     @Override
-    public void loadPhoto(ImageView view, Uri photoUri, int requestedExtent, boolean darkTheme,
-            DefaultImageProvider defaultProvider) {
+    public void loadPhoto(ImageView view, Uri photoUri, Account account, int requestedExtent,
+            boolean darkTheme, DefaultImageProvider defaultProvider) {
         if (photoUri == null) {
             // No photo is needed
-            defaultProvider.applyDefaultImage(view, requestedExtent, darkTheme);
+            defaultProvider.applyDefaultImage(view, account, requestedExtent, darkTheme);
             mPendingRequests.remove(view);
         } else {
             if (DEBUG) Log.d(TAG, "loadPhoto request: " + photoUri);
@@ -1214,7 +1270,7 @@ class ContactPhotoManagerImpl extends ContactPhotoManager implements Callback {
         }
 
         public void applyDefaultImage(ImageView view) {
-            mDefaultProvider.applyDefaultImage(view, mRequestedExtent, mDarkTheme);
+            mDefaultProvider.applyDefaultImage(view, null, mRequestedExtent, mDarkTheme);
         }
     }
 }

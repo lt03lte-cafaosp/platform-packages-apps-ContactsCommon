@@ -1019,6 +1019,14 @@ public class ContactListItemView extends ViewGroup
         return mLocationView;
     }
 
+    public void refreshButton() {
+        if (mSecondaryActionContainerView != null && layoutSub1 != null) {
+            MoreContactUtils.controlCallIconDisplay(mContext, layoutSub1, callButtonSub1,
+                    callIconSub1, layoutSub2, callButtonSub2, callIconSub2, divider_sub1,
+                    divider_sub2, 0);
+        }
+    }
+
     public void setSecondaryActionViewContainer() {
         getSecondaryActionViewContainer();
         mSecondaryActionContainerView.setVisibility(View.VISIBLE);
@@ -1105,7 +1113,11 @@ public class ContactListItemView extends ViewGroup
             if (mDataView != null) {
                 mDataView.setVisibility(View.GONE);
             }
+            if (mSecondaryActionContainerView != null) {
+                removeView(mSecondaryActionContainerView);
+            }
         } else {
+            refreshButton();
             getDataView();
             setMarqueeText(mDataView, text, size);
             mDataView.setVisibility(VISIBLE);

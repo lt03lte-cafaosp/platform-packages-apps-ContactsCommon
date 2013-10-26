@@ -84,7 +84,6 @@ public class CallUtil {
     public static Intent getSlotIntent(String number, int subscription) {
         Intent slotIntent = getCallIntent(number);
         slotIntent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
-        slotIntent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
         return slotIntent;
     }
 
