@@ -88,6 +88,65 @@ public class MoreContactUtils {
 
     public static final int DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE = -1;
 
+    // Default contact pictures for sim contacts in DSDS mode
+    public final static int[] IC_CONTACT_PICTURE_180_HOLO_DARKS = {
+            R.drawable.ic_contact_picture_180_holo_dark_1,
+            R.drawable.ic_contact_picture_180_holo_dark_2,
+            R.drawable.ic_contact_picture_180_holo_dark_c,
+            R.drawable.ic_contact_picture_180_holo_dark_g,
+            R.drawable.ic_contact_picture_180_holo_dark_w
+    };
+
+    public final static int[] IC_CONTACT_PICTURE_180_HOLO_LIGHTS = {
+            R.drawable.ic_contact_picture_180_holo_light_1,
+            R.drawable.ic_contact_picture_180_holo_light_2,
+            R.drawable.ic_contact_picture_180_holo_light_c,
+            R.drawable.ic_contact_picture_180_holo_light_g,
+            R.drawable.ic_contact_picture_180_holo_light_w
+    };
+
+    public final static int[] IC_CONTACT_PICTURE_HOLO_DARKS = {
+            R.drawable.ic_contact_picture_holo_dark_1,
+            R.drawable.ic_contact_picture_holo_dark_2,
+            R.drawable.ic_contact_picture_holo_dark_c,
+            R.drawable.ic_contact_picture_holo_dark_g,
+            R.drawable.ic_contact_picture_holo_dark_w
+    };
+
+    public final static int[] IC_CONTACT_PICTURE_HOLO_LIGHTS = {
+            R.drawable.ic_contact_picture_holo_light_1,
+            R.drawable.ic_contact_picture_holo_light_2,
+            R.drawable.ic_contact_picture_holo_light_c,
+            R.drawable.ic_contact_picture_holo_light_g,
+            R.drawable.ic_contact_picture_holo_light_w
+    };
+
+    public final static int[] IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_DARKS = {
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_1,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_2,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_c,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_g,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_w
+    };
+
+    public final static int[] IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_LIGHTS = {
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_1,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_2,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_c,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_g,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_w
+    };
+
+    // Default contact pictures for sim contacts in SSSS mode
+    public final static int IC_CONTACT_PICTURE_180_HOLO_DARK_SIM =
+            R.drawable.ic_contact_picture_180_holo_dark_sim;
+    public final static int IC_CONTACT_PICTURE_180_HOLO_LIGHT_SIM =
+            R.drawable.ic_contact_picture_180_holo_light_sim;
+    public final static int IC_CONTACT_PICTURE_HOLO_DARK_SIM =
+            R.drawable.ic_contact_picture_holo_dark_sim;
+    public final static int IC_CONTACT_PICTURE_HOLO_LIGHT_SIM =
+            R.drawable.ic_contact_picture_holo_light_sim;
+
     /**
      * Returns true if two data with mimetypes which represent values in contact entries are
      * considered equal for collapsing in the GUI. For caller-id, use
@@ -695,6 +754,28 @@ public class MoreContactUtils {
     }
 
     /**
+     * Get SIM card icon index by subscription
+     */
+    public static int getCurrentSimIconIndex(Context context, int subscription) {
+        if (context == null || subscription < 0
+                || subscription >= getMSimTelephonyManager().getPhoneCount()) {
+            return -1;
+        }
+
+        String simIconIndex = Settings.System.getString(context.getContentResolver(),
+                Settings.System.PREFERRED_SIM_ICON_INDEX);
+        if (TextUtils.isEmpty(simIconIndex)) {
+            return subscription;
+        } else {
+            String[] indexs = simIconIndex.split(",");
+            if (subscription >= indexs.length) {
+                return -1;
+            }
+            return Integer.parseInt(indexs[subscription]);
+        }
+    }
+
+    /**
      * Get SIM card icon
      */
     public static Drawable getMultiSimIcon(Context context, int style, int subscription) {
@@ -712,16 +793,11 @@ public class MoreContactUtils {
                     com.android.internal.R.array.sim_icons);
         }
 
-        String simIconIndex = Settings.System.getString(context.getContentResolver(),
-                Settings.System.PREFERRED_SIM_ICON_INDEX);
-        if (TextUtils.isEmpty(simIconIndex)) {
-            return icons.getDrawable(subscription);
+        int index = getCurrentSimIconIndex(context, subscription);
+        if (index < 0) {
+            return null;
         } else {
-            String[] indexs = simIconIndex.split(",");
-            if (subscription >= indexs.length) {
-                return null;
-            }
-            return icons.getDrawable(Integer.parseInt(indexs[subscription]));
+            return icons.getDrawable(index);
         }
     }
 
