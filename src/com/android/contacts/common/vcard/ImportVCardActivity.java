@@ -120,6 +120,8 @@ public class ImportVCardActivity extends Activity {
 
     final static String CACHED_URIS = "cached_uris";
 
+    private static boolean isCacheThreadRuning;
+
     // Connect status,default value is STATUS_DEFAULT.
     private int mConnectStatus = STATUS_DEFAULT;
 
@@ -249,6 +251,7 @@ public class ImportVCardActivity extends Activity {
                     PowerManager.SCREEN_DIM_WAKE_LOCK |
                     PowerManager.ON_AFTER_RELEASE, LOG_TAG);
             mDisplayName = null;
+            isCacheThreadRuning = false;
         }
 
         @Override
@@ -273,7 +276,7 @@ public class ImportVCardActivity extends Activity {
                     Log.i(LOG_TAG, "vCard cache operation is canceled.");
                     return;
                 }
-
+                isCacheThreadRuning = true;
                 final Context context = ImportVCardActivity.this;
                 // Uris given from caller applications may not be opened twice: consider when
                 // it is not from local storage (e.g. "file:///...") but from some special
@@ -396,6 +399,7 @@ public class ImportVCardActivity extends Activity {
                 }
                 mProgressDialogForCachingVCard.dismiss();
                 mProgressDialogForCachingVCard = null;
+                isCacheThreadRuning = false;
                 finish();
             }
         }
@@ -802,6 +806,7 @@ public class ImportVCardActivity extends Activity {
                     mVCardCacheThread = new VCardCacheThread(uris);
                     mListener = new NotificationImportExportListener(ImportVCardActivity.this);
                     showDialog(R.id.dialog_cache_vcard);
+                    startVCardService();
                 }
             }
         });
@@ -865,6 +870,11 @@ public class ImportVCardActivity extends Activity {
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+
+        if (isCacheThreadRuning) {
+            showDialog(R.id.dialog_cache_vcard);
+            return;
+        }
 
         String accountName = null;
         String accountType = null;
@@ -983,7 +993,6 @@ public class ImportVCardActivity extends Activity {
                     mProgressDialogForCachingVCard.setMessage(message);
                     mProgressDialogForCachingVCard.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                     mProgressDialogForCachingVCard.setOnCancelListener(mVCardCacheThread);
-                    startVCardService();
                 }
                 return mProgressDialogForCachingVCard;
             }
@@ -1043,6 +1052,18 @@ public class ImportVCardActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        if (mProgressDialogForCachingVCard != null) {
+            removeDialog(R.id.dialog_cache_vcard);
+            removeDialog(R.id.dialog_select_import_type);
+            removeDialog(R.id.dialog_select_multiple_vcard);
+            removeDialog(R.id.dialog_searching_vcard);
+            removeDialog(R.id.dialog_select_one_vcard);
+        }
+
+        super.onSaveInstanceState(savedInstanceState);
+    }
     /**
      * Scans vCard in external storage (typically SDCard) and tries to import it.
      * - When there's no SDCard available, an error dialog is shown.
