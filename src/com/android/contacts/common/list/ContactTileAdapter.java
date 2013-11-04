@@ -202,6 +202,9 @@ public class ContactTileAdapter extends BaseAdapter {
      * Else use {@link ContactTileLoaderFactory}
      */
     public void setContactCursor(Cursor cursor) {
+        if (cursor == null || cursor.isClosed()) {
+            return;
+        }
         mContactCursor = cursor;
         mDividerPosition = getDividerPosition(cursor);
 
