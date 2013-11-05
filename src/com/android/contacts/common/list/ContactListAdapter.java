@@ -353,6 +353,9 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
     public void changeCursor(int partitionIndex, Cursor cursor) {
         super.changeCursor(partitionIndex, cursor);
 
+        if (cursor != null && 0 == cursor.getCount()) {
+            setProfileExists(false);
+        }
         // Check if a profile exists
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
