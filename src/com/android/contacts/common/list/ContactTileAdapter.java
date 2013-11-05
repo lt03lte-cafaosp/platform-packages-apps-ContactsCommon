@@ -54,6 +54,11 @@ public class ContactTileAdapter extends BaseAdapter {
     protected int mNumFrequents;
 
     /**
+     * Get the layout width.
+     */
+    private int nRTLWidth = 0;
+
+    /**
      * Index of the first NON starred contact in the {@link Cursor}
      * Only valid when {@link DisplayType#STREQUENT} is true
      */
@@ -587,6 +592,7 @@ public class ContactTileAdapter extends BaseAdapter {
             switch (mItemViewType) {
                 case ViewTypes.STARRED_PHONE:
                 case ViewTypes.STARRED:
+                    nRTLWidth = right -left;
                     onLayoutForTiles();
                     return;
                 default:
@@ -605,8 +611,15 @@ public class ContactTileAdapter extends BaseAdapter {
 
                 // Note MeasuredWidth includes the padding.
                 final int childWidth = child.getMeasuredWidth();
-                child.layout(childLeft, 0, childLeft + childWidth, child.getMeasuredHeight());
-                childLeft += childWidth;
+
+                // Layout for RTL
+                if (child.isLayoutRtl()) {
+                    child.layout(nRTLWidth -childWidth, 0, nRTLWidth, child.getMeasuredHeight());
+                    nRTLWidth -= childWidth;
+                }else{
+                    child.layout(childLeft, 0, childLeft + childWidth, child.getMeasuredHeight());
+                    childLeft += childWidth;
+                }
             }
         }
 
