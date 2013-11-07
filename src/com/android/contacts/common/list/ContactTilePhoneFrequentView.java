@@ -98,12 +98,19 @@ public class ContactTilePhoneFrequentView extends ContactTileView {
                         Intent intent = CallUtil.getCallIntent(mPhoneNumberString);
                         if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
                             intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
-                            intent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
-                        }
+                       }
                         mContext.startActivity(intent);
                     }
                 }
             });
+        }
+    }
+
+    public void refreshButton() {
+        if (mSecondaryActionView != null && layoutSub1 != null) {
+            MoreContactUtils.controlCallIconDisplay(mContext, layoutSub1, callButtonSub1,
+                    callIconSub1, layoutSub2, callButtonSub2, callIconSub2, divider_sub1,
+                    divider_sub2, 0);
         }
     }
 
@@ -120,6 +127,7 @@ public class ContactTilePhoneFrequentView extends ContactTileView {
     @Override
     public void loadFromContact(ContactEntry entry) {
         super.loadFromContact(entry);
+        refreshButton();
         mPhoneNumberString = null; // ... in case we're reusing the view
         if (entry != null) {
             // Grab the phone-number to call directly... see {@link onClick()}
