@@ -627,15 +627,18 @@ public class ContactListItemView extends ViewGroup
         // Layout all text view and presence icon
         // Put name TextView first
         if (isVisible(mNameTextView)) {
-            int nameWidth = mNameTextView.getMeasuredWidth();
             mNameTextView.layout(leftBound,
                     textTopBound,
                     leftBound + widthForName,
                     textTopBound + mNameTextViewHeight);
             nameLeftBound = leftBound + widthForName + mTextIndent;
+        } else {
+            // if name is not visible, label is placed on the top of the data,
+            // so we re-calculate the text top bound.
+            textTopBound = (bottomBound + topBound - totalTextHeight - mLabelViewHeight) / 2;
         }
 
-        if (isVisible(mNameTextView) || isVisible(mLabelView)) {
+        if (isVisible(mNameTextView)) {
             textTopBound += mNameTextViewHeight;
         }
 
@@ -703,10 +706,17 @@ public class ContactListItemView extends ViewGroup
         if (isVisible(mLabelView)) {
             if (mPhotoPosition == PhotoPosition.LEFT) {
                 // When photo is on left, label is placed on the right edge of the list item.
-                mLabelView.layout(nameLeftBound,
-                        nameTopBound,
-                        nameLeftBound + widthForLabel,
-                        nameTopBound + mNameTextViewHeight);
+                if (isVisible(mNameTextView)) {
+                    // if name is visible, label is placed on the right of the name.
+                    mLabelView.layout(nameLeftBound, nameTopBound,
+                            nameLeftBound + widthForLabel, nameTopBound
+                                    + mLabelAndDataViewMaxHeight);
+                } else {
+                    // if name is invisible, label is placed on the top of the data.
+                    mLabelView.layout(leftBound, textTopBound, leftBound
+                            + widthForLabel, textTopBound
+                            + mLabelAndDataViewMaxHeight);
+                }
             } else {
                 // When photo is on right, label is placed on the left of data view.
                 dataLeftBound = leftBound + mLabelView.getMeasuredWidth();
@@ -715,6 +725,9 @@ public class ContactListItemView extends ViewGroup
                         dataLeftBound,
                         textTopBound + mLabelAndDataViewMaxHeight);
                 dataLeftBound += mGapBetweenLabelAndData;
+            }
+            if (!isVisible(mNameTextView)) {
+                textTopBound += mLabelViewHeight;
             }
         }
 
