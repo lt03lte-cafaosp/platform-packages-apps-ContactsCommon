@@ -49,7 +49,7 @@
     <RelativeLayout
         android:id="@+id/layout_sub1"
         android:layout_width="@dimen/dsds_btnstyle_layout_width"
-        android:layout_height="match_parent"
+        android:layout_height="@dimen/dsds_btnstyle_layout_height"
         android:layout_gravity="center" >
 
         <ImageButton
@@ -80,7 +80,7 @@
     <RelativeLayout
         android:id="@+id/layout_sub2"
         android:layout_width="@dimen/dsds_btnstyle_layout_width"
-        android:layout_height="match_parent"
+        android:layout_height="@dimen/dsds_btnstyle_layout_height"
         android:layout_gravity="center" >
 
         <ImageButton
