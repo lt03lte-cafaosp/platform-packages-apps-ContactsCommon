@@ -416,7 +416,7 @@ public class ContactListItemView extends ViewGroup
             // For performance reason we don't want AT_MOST usually, but when the picture is
             // on right, we need to use it anyway because mDataView is next to mLabelView.
             final int mode = (mPhotoPosition == PhotoPosition.LEFT
-                    ? MeasureSpec.EXACTLY : MeasureSpec.AT_MOST);
+                    ? MeasureSpec.UNSPECIFIED : MeasureSpec.AT_MOST);
             mLabelView.measure(MeasureSpec.makeMeasureSpec(labelWidth, mode),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mLabelViewHeight = mLabelView.getMeasuredHeight();
@@ -584,6 +584,44 @@ public class ContactListItemView extends ViewGroup
                 mLabelAndDataViewMaxHeight + mSnippetTextViewHeight + mStatusTextViewHeight;
         int textTopBound = (bottomBound + topBound - totalTextHeight) / 2;
 
+        int secondaryActionViewWidth = 0;
+        if (mSecondaryActionContainerView != null) {
+            secondaryActionViewWidth = mSecondaryActionContainerView.getMeasuredWidth();
+        }
+        int widthForNameAndLabel = rightBound - leftBound - secondaryActionViewWidth
+                - mTextIndent;
+        if (MoreContactUtils.getEnabledSimCount() < 2) {
+            widthForNameAndLabel -= mTextIndent;
+        }
+        int widthForName = 0;
+        int widthForLabel = 0;
+        if (isVisible(mLabelView)) {
+            if (isVisible(mNameTextView)) {
+                if (mNameTextView.getMeasuredWidth() + mLabelView.getMeasuredWidth()
+                        > widthForNameAndLabel) {
+                    if (mNameTextView.getMeasuredWidth() > widthForNameAndLabel / 3 * 2
+                            && mLabelView.getMeasuredWidth() > widthForNameAndLabel / 3) {
+                        widthForName = widthForNameAndLabel / 3 * 2;
+                        widthForLabel = widthForNameAndLabel - widthForName;
+                    } else if (mNameTextView.getMeasuredWidth() > widthForNameAndLabel / 3 * 2
+                            && mLabelView.getMeasuredWidth() < widthForNameAndLabel / 3) {
+                        widthForLabel = mLabelView.getMeasuredWidth();
+                        widthForName = widthForNameAndLabel - widthForLabel;
+                    } else if (mNameTextView.getMeasuredWidth() < widthForNameAndLabel / 3 * 2
+                            && mLabelView.getMeasuredWidth() > widthForNameAndLabel / 3) {
+                        widthForName = mNameTextView.getMeasuredWidth();
+                        widthForLabel = widthForNameAndLabel - widthForName;
+                    }
+                } else {
+                    widthForName = mNameTextView.getMeasuredWidth();
+                    widthForLabel = mLabelView.getMeasuredWidth();
+                }
+            } else {
+                widthForLabel = widthForNameAndLabel;
+            }
+        } else {
+            widthForName = widthForNameAndLabel;
+        }
         int nameLeftBound = leftBound;
         final int nameTopBound = textTopBound;
         // Layout all text view and presence icon
@@ -592,9 +630,9 @@ public class ContactListItemView extends ViewGroup
             int nameWidth = mNameTextView.getMeasuredWidth();
             mNameTextView.layout(leftBound,
                     textTopBound,
-                    rightBound,
+                    leftBound + widthForName,
                     textTopBound + mNameTextViewHeight);
-            nameLeftBound = leftBound + nameWidth + mTextIndent;
+            nameLeftBound = leftBound + widthForName + mTextIndent;
         }
 
         if (isVisible(mNameTextView) || isVisible(mLabelView)) {
@@ -667,7 +705,7 @@ public class ContactListItemView extends ViewGroup
                 // When photo is on left, label is placed on the right edge of the list item.
                 mLabelView.layout(nameLeftBound,
                         nameTopBound,
-                        nameLeftBound + mLabelView.getMeasuredWidth(),
+                        nameLeftBound + widthForLabel,
                         nameTopBound + mNameTextViewHeight);
             } else {
                 // When photo is on right, label is placed on the left of data view.

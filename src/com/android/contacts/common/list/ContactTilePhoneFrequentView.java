@@ -21,6 +21,7 @@ import android.telephony.MSimTelephonyManager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.widget.ImageView;
 
@@ -140,5 +141,45 @@ public class ContactTilePhoneFrequentView extends ContactTileView {
         // disable createClickListener, remove "onContactSelected" case to "setSecondaryListener"
         // method.
         return null;
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+
+        int secondaryActionViewWidth = 0;
+        if (mSecondaryActionView != null) {
+            secondaryActionViewWidth = mSecondaryActionView.getMeasuredWidth();
+        }
+        int widthForNameAndLabel = getMeasuredWidth() - mQuickContact.getMeasuredWidth()
+                - secondaryActionViewWidth - ((ViewGroup.MarginLayoutParams) mPhoneLabel.
+                        getLayoutParams()).getMarginStart()
+                - ((ViewGroup.MarginLayoutParams) mName
+                        .getLayoutParams()).getMarginStart();
+        if (MoreContactUtils.getEnabledSimCount() < 2) {
+            widthForNameAndLabel -= 8;
+        }
+        int widthForName = 0;
+        int widthForLabel = 0;
+        if (mName.getMeasuredWidth() + mPhoneLabel.getMeasuredWidth() > widthForNameAndLabel) {
+            if (mName.getMeasuredWidth() > widthForNameAndLabel / 3 * 2
+                    && mPhoneLabel.getMeasuredWidth() > widthForNameAndLabel / 3) {
+                widthForName = widthForNameAndLabel / 3 * 2;
+                widthForLabel = widthForNameAndLabel - widthForName;
+            } else if (mName.getMeasuredWidth() > widthForNameAndLabel / 3 * 2
+                    && mPhoneLabel.getMeasuredWidth() < widthForNameAndLabel / 3) {
+                widthForLabel = mPhoneLabel.getMeasuredWidth();
+                widthForName = widthForNameAndLabel - widthForLabel;
+            } else if (mName.getMeasuredWidth() < widthForNameAndLabel / 3 * 2
+                    && mPhoneLabel.getMeasuredWidth() > widthForNameAndLabel / 3) {
+                widthForName = mName.getMeasuredWidth();
+                widthForLabel = widthForNameAndLabel - widthForName;
+            }
+        } else {
+            widthForName = mName.getMeasuredWidth();
+            widthForLabel = mPhoneLabel.getMeasuredWidth();
+        }
+        mName.setWidth(widthForName);
+        mPhoneLabel.setWidth(widthForLabel);
     }
 }
