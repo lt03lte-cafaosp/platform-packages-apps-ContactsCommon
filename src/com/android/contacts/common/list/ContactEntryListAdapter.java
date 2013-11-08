@@ -15,6 +15,7 @@
  */
 package com.android.contacts.common.list;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
@@ -624,25 +625,33 @@ public abstract class ContactEntryListAdapter extends IndexerListAdapter {
      * @param photoUriColumn Index of the photo uri column. Optional: Can be -1
      * @param contactIdColumn Index of the contact id column
      * @param lookUpKeyColumn Index of the lookup key column
+     * @param accountTypeColume Index of the account type column
+     * @param accountNameColume Index of the account name column
      */
     protected void bindQuickContact(final ContactListItemView view, int partitionIndex,
             Cursor cursor, int photoIdColumn, int photoUriColumn, int contactIdColumn,
-            int lookUpKeyColumn) {
+            int lookUpKeyColumn, int accountTypeColume, int accountNameColume) {
         long photoId = 0;
         if (!cursor.isNull(photoIdColumn)) {
             photoId = cursor.getLong(photoIdColumn);
         }
 
+        Account account = null;
+        if (!cursor.isNull(accountTypeColume) && !cursor.isNull(accountNameColume)) {
+            final String accountType = cursor.getString(accountTypeColume);
+            final String accountName = cursor.getString(accountNameColume);
+            account = new Account(accountName, accountType);
+        }
         QuickContactBadge quickContact = view.getQuickContact();
         quickContact.assignContactUri(
                 getContactUri(partitionIndex, cursor, contactIdColumn, lookUpKeyColumn));
 
         if (photoId != 0 || photoUriColumn == -1) {
-            getPhotoLoader().loadThumbnail(quickContact, photoId, mDarkTheme);
+            getPhotoLoader().loadThumbnail(quickContact, photoId, account, mDarkTheme);
         } else {
             final String photoUriString = cursor.getString(photoUriColumn);
             final Uri photoUri = photoUriString == null ? null : Uri.parse(photoUriString);
-            getPhotoLoader().loadPhoto(quickContact, photoUri, -1, mDarkTheme);
+            getPhotoLoader().loadPhoto(quickContact, photoUri, account, -1, mDarkTheme);
         }
 
     }

@@ -37,13 +37,16 @@ public final class ContactTileLoaderFactory {
     public final static int STARRED = 2;
     public final static int PHOTO_URI = 3;
     public final static int LOOKUP_KEY = 4;
-    public final static int CONTACT_PRESENCE = 5;
-    public final static int CONTACT_STATUS = 6;
+    public final static int ACCOUNT_TYPE = 5;
+    public final static int ACCOUNT_NAME = 6;
+
+    public final static int CONTACT_PRESENCE = 7;
+    public final static int CONTACT_STATUS = 8;
 
     // Only used for StrequentPhoneOnlyLoader
-    public final static int PHONE_NUMBER = 5;
-    public final static int PHONE_NUMBER_TYPE = 6;
-    public final static int PHONE_NUMBER_LABEL = 7;
+    public final static int PHONE_NUMBER = 7;
+    public final static int PHONE_NUMBER_TYPE = 8;
+    public final static int PHONE_NUMBER_LABEL = 9;
 
     private static final String[] COLUMNS = new String[] {
         Contacts._ID, // ..........................................0
@@ -51,8 +54,10 @@ public final class ContactTileLoaderFactory {
         Contacts.STARRED, // ......................................2
         Contacts.PHOTO_URI, // ....................................3
         Contacts.LOOKUP_KEY, // ...................................4
-        Contacts.CONTACT_PRESENCE, // .............................5
-        Contacts.CONTACT_STATUS, // ...............................6
+        RawContacts.ACCOUNT_TYPE, //                               5
+        RawContacts.ACCOUNT_NAME, //                               6
+        Contacts.CONTACT_PRESENCE, // .............................7
+        Contacts.CONTACT_STATUS, // ...............................8
     };
 
     /**
@@ -67,9 +72,11 @@ public final class ContactTileLoaderFactory {
         Contacts.STARRED, // ......................................2
         Contacts.PHOTO_URI, // ....................................3
         Contacts.LOOKUP_KEY, // ...................................4
-        Phone.NUMBER, // ..........................................5
-        Phone.TYPE, // ............................................6
-        Phone.LABEL // ............................................7
+        RawContacts.ACCOUNT_TYPE, //                               5
+        RawContacts.ACCOUNT_NAME, //                               6
+        Phone.NUMBER, // ..........................................7
+        Phone.TYPE, // ............................................8
+        Phone.LABEL // ............................................9
     };
 
     private static final String STARRED_ORDER = Contacts.DISPLAY_NAME+" COLLATE NOCASE ASC";
