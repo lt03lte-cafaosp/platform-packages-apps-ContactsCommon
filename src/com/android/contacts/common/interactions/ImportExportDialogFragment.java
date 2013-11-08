@@ -787,8 +787,9 @@ public class ImportExportDialogFragment extends DialogFragment
                                     Log.d(TAG, "result = " + result);
                                 if (null == result) {
                                     // add toast handler when sim card is full
-                                    if (0 == MoreContactUtils
-                                            .getSimFreeCount(mpeople, subscription)) {
+                                    if ((MoreContactUtils.getAdnCount(subscription) > 0)
+                                            && (MoreContactUtils.getSimFreeCount(mpeople,
+                                                    subscription) == 0)) {
                                         isSimCardFull = true;
                                         mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
                                         break;
