@@ -39,10 +39,10 @@ public abstract class ContactTileView extends FrameLayout {
 
     private Uri mLookupUri;
     private ImageView mPhoto;
-    private QuickContactBadge mQuickContact;
-    private TextView mName;
+    protected QuickContactBadge mQuickContact;
+    protected TextView mName;
     private TextView mStatus;
-    private TextView mPhoneLabel;
+    protected TextView mPhoneLabel;
     private TextView mPhoneNumber;
     private ContactPhotoManager mPhotoManager = null;
     private View mPushState;
