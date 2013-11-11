@@ -63,7 +63,6 @@
             android:layout_toEndOf="@id/contact_tile_name"
             android:layout_toRightOf="@id/contact_tile_name"
             android:ellipsize="marquee"
-            android:gravity="end"
             android:singleLine="true"
             android:textAllCaps="true"
             android:textColor="@color/dialtacts_secondary_text_color"
