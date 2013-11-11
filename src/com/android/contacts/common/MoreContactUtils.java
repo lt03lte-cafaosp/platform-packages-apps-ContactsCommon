@@ -85,6 +85,7 @@ public class MoreContactUtils {
 
     public static final int FRAMEWORK_ICON = 1;
     public static final int CONTACTSCOMMON_ICON = 2;
+    public static final int DIALER_ICON = 3;
 
     public static final int DO_NOT_SHOW_BUTTON_IN_DEFAULT_STYLE = -1;
 
@@ -787,7 +788,10 @@ public class MoreContactUtils {
         TypedArray icons;
         if (style == CONTACTSCOMMON_ICON) {
             icons = context.getResources().obtainTypedArray(
-                    com.android.contacts.common.R.array.sim_icons_small);
+                    com.android.contacts.common.R.array.sim_icons_for_account);
+        } else if (style == DIALER_ICON) {
+            icons = context.getResources().obtainTypedArray(
+                    com.android.contacts.common.R.array.sim_icons_for_dialer);
         } else {
             icons = context.getResources().obtainTypedArray(
                     com.android.internal.R.array.sim_icons);
