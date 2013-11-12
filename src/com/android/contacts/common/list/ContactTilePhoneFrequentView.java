@@ -86,25 +86,22 @@ public class ContactTilePhoneFrequentView extends ContactTileView {
     }
 
     private void setSecondaryListener(ImageView imageView, final int subscription) {
-        if (MoreContactUtils.isMultiSimEnable(subscription)) {
-            imageView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (TextUtils.isEmpty(mPhoneNumberString) && mListener != null) {
-                        // Copy "superclass.createClickListener" implementation
-                        mListener.onContactSelected(getLookupUri(), MoreContactUtils
-                                .getTargetRectFromView(mContext,
-                                        ContactTilePhoneFrequentView.this));
-                    } else {
-                        Intent intent = CallUtil.getCallIntent(mPhoneNumberString);
-                        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-                            intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
-                       }
-                        mContext.startActivity(intent);
+        imageView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (TextUtils.isEmpty(mPhoneNumberString) && mListener != null) {
+                    // Copy "superclass.createClickListener" implementation
+                    mListener.onContactSelected(getLookupUri(), MoreContactUtils
+                            .getTargetRectFromView(mContext, ContactTilePhoneFrequentView.this));
+                } else {
+                    Intent intent = CallUtil.getCallIntent(mPhoneNumberString);
+                    if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                        intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
                     }
+                    mContext.startActivity(intent);
                 }
-            });
-        }
+            }
+        });
     }
 
     public void refreshButton() {

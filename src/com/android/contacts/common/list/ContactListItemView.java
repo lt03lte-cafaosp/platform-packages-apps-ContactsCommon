@@ -1141,19 +1141,17 @@ public class ContactListItemView extends ViewGroup
     }
 
     private void setSecondaryListener(ImageView secondaryView, final int subscription) {
-        if (MoreContactUtils.isMultiSimEnable(subscription)) {
-            secondaryView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = CallUtil.getCallIntent(mDataView.getText().toString());
-                    if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-                        intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
-                        intent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
-                    }
-                    mContext.startActivity(intent);
+        secondaryView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = CallUtil.getCallIntent(mDataView.getText().toString());
+                if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                    intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
+                    intent.putExtra(MoreContactUtils.DIAL_WIDGET_SWITCHED, subscription);
                 }
-            });
-        }
+                mContext.startActivity(intent);
+            }
+        });
     }
 
     /**
