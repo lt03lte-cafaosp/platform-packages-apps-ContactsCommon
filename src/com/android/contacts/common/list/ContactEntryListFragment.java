@@ -44,7 +44,9 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.android.common.widget.CompositeCursorAdapter.Partition;
 import com.android.contacts.common.ContactPhotoManager;
@@ -108,6 +110,8 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
 
     private T mAdapter;
     private View mView;
+    protected View mSearchHeaderView;
+    protected TextView mSearchProgressText;
     private ListView mListView;
 
     /**
@@ -482,10 +486,22 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
     }
 
     /**
-     * Shows the count of entries included in the list. The default
-     * implementation does nothing.
+     * Shows the count of entries included in the list.
      */
     protected void showCount(int partitionIndex, Cursor data) {
+        if (isSearchMode() || null == data) {
+            if (mAdapter == null) {
+                return;
+            }
+
+            // In search mode we only display the header if there is nothing found
+            if (null == mQueryString || !mAdapter.areAllPartitionsEmpty()) {
+                mSearchHeaderView.setVisibility(View.GONE);
+            } else {
+                mSearchHeaderView.setVisibility(View.VISIBLE);
+                mSearchProgressText.setText(R.string.listFoundAllContactsZero);
+            }
+        }
     }
 
     /**
@@ -623,6 +639,11 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
                 mListView.setFastScrollEnabled(!flag);
             }
         }
+
+        // Hide the search header by default. See showCount().
+        if (mSearchHeaderView != null) {
+            mSearchHeaderView.setVisibility(View.GONE);
+        }
     }
 
     public final boolean isSearchMode() {
@@ -752,6 +773,15 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
 
         // We manually save/restore the listview state
         mListView.setSaveEnabled(false);
+
+        // Putting the header view inside a container will allow us to make
+        // it invisible later.
+        FrameLayout headerContainer = new FrameLayout(inflater.getContext());
+        mSearchHeaderView = inflater.inflate(R.layout.search_header, null, false);
+        headerContainer.addView(mSearchHeaderView);
+        getListView().addHeaderView(headerContainer, null, false);
+        mSearchProgressText = (TextView) mSearchHeaderView.findViewById(R.id.totalContactsText);
+        mSearchHeaderView.setVisibility(View.GONE);
 
         configureVerticalScrollbar();
         configurePhotoLoader();
