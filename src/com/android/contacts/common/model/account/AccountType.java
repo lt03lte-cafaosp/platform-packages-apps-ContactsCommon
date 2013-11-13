@@ -27,6 +27,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.RawContacts;
+import android.telephony.MSimTelephonyManager;
 import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -341,13 +342,17 @@ public abstract class AccountType {
 
     public Drawable getDisplayIcon(Context context, String accountName) {
         if ((SimAccountType.ACCOUNT_TYPE).equals(accountType)) {
-            int sub = MoreContactUtils.getSubFromAccountName(accountName);
-            return MoreContactUtils.getMultiSimIcon(context, MoreContactUtils.CONTACTSCOMMON_ICON,
-                    sub);
+            if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                int sub = MoreContactUtils.getSubFromAccountName(accountName);
+                return MoreContactUtils.getMultiSimIcon(context,
+                        MoreContactUtils.CONTACTSCOMMON_ICON,
+                        sub);
+            } else {
+                return context.getResources().getDrawable(R.drawable.sim_account);
+            }
         } else if (PhoneAccountType.ACCOUNT_TYPE.equals(accountType)) {
             return context.getResources().getDrawable(R.drawable.phone_account);
         }
-
         return getDisplayIcon(context);
     }
 
