@@ -15,6 +15,7 @@
  */
 package com.android.contacts.common.vcard;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -54,6 +55,7 @@ import java.util.concurrent.RejectedExecutionException;
 public class VCardService extends Service {
     private final static String LOG_TAG = "VCardService";
 
+    private final static int NOTIFICATION_ID = 1;
     /* package */ final static boolean DEBUG = false;
 
     /* package */ static final int MSG_IMPORT_REQUEST = 1;
@@ -146,6 +148,8 @@ public class VCardService extends Service {
         mBinder = new MyBinder();
         if (DEBUG) Log.d(LOG_TAG, "vCard Service is being created.");
         initExporterParams();
+        Notification notification = new Notification();
+        startForeground(NOTIFICATION_ID, notification);
     }
 
     private void initExporterParams() {
