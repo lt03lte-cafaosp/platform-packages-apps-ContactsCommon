@@ -325,6 +325,7 @@ public abstract class AccountType {
      */
     public Drawable getDisplayIcon(Context context) {
         Drawable icon = null;
+        updateAuthDescriptions(context);
         if (mTypeToAuthDescription.containsKey(accountType)) {
             try {
                 AuthenticatorDescription desc = mTypeToAuthDescription.get(accountType);
