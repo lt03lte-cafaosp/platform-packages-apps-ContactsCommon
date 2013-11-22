@@ -93,4 +93,6 @@
     <dimen name="dsds_vertical_divider_height">-1dip</dimen>
 
     <dimen name="dsds_photo_gap">1dip</dimen>
+
+    <dimen name="contact_filter_header_min_height">24dip</dimen>
 </resources>
