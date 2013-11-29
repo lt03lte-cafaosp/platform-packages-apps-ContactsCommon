@@ -638,6 +638,8 @@ public class ImportExportDialogFragment extends DialogFragment
             String accountName = getAccountNameBy(subscription);
             String accountType = SimContactsConstants.ACCOUNT_TYPE_SIM;
             Account account = new Account(accountName,accountType);
+            boolean isAirplaneMode = false;
+            boolean isSimCardFull = false;
             // GoogleSource.createMyContactsIfNotExist(account, getActivity());
             // in case export is stopped, record the count of inserted successfully
             int insertCount = 0;
@@ -672,9 +674,8 @@ public class ImportExportDialogFragment extends DialogFragment
             if (type == TYPE_SELECT) {
                 if (contactList != null) {
                     Iterator<String[]> iterator = contactList.iterator();
-                    boolean isSimCardFull = false;
-                    boolean isAirMode = false;
-                    while (iterator.hasNext() && !canceled && !isAirMode) {
+
+                    while (iterator.hasNext() && !canceled && !isAirplaneMode) {
                         String[] contactInfo = iterator.next();
                         String name = "";
                         ArrayList<String> arrayNumber = new ArrayList<String>();
@@ -765,10 +766,10 @@ public class ImportExportDialogFragment extends DialogFragment
                                         mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
                                         break;
                                     } else {
-                                        mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
-                                        isAirMode = (System.getInt(mpeople.getContentResolver(),
-                                                System.AIRPLANE_MODE_ON, 0) != 0);
-                                        if (isAirMode) {
+                                        isAirplaneMode = (System.getInt(mpeople.getContentResolver(),
+                                                Settings.Global.AIRPLANE_MODE_ON, 0) != 0);
+                                        if (isAirplaneMode) {
+                                            mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
                                             break;
                                         } else {
                                             continue;
@@ -815,12 +816,14 @@ public class ImportExportDialogFragment extends DialogFragment
                 mExportProgressDlg = null;
             }
 
-            // if canceled, show toast indicating export is interrupted.
-            if (canceled) {
-                mToastHandler.sendMessage(mToastHandler.obtainMessage(TOAST_EXPORT_CANCELED,
-                    insertCount, 0));
-            } else {
-                mToastHandler.sendEmptyMessage(TOAST_EXPORT_FINISHED);
+            if (!isAirplaneMode && !isSimCardFull) {
+                // if canceled, show toast indicating export is interrupted.
+                if (canceled) {
+                    mToastHandler.sendMessage(mToastHandler.obtainMessage(TOAST_EXPORT_CANCELED,
+                            insertCount, 0));
+                } else {
+                    mToastHandler.sendEmptyMessage(TOAST_EXPORT_FINISHED);
+                }
             }
         isExportingToSIM = false;
         Intent intent = new Intent(SimContactsConstants.INTENT_EXPORT_COMPLETE);
