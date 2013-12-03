@@ -100,6 +100,10 @@ public class ImportExportDialogFragment extends DialogFragment
     // This values must be consistent with PeopleActivity.SUBACTIVITY_EXPORT_CONTACTS.
     public static int SUBACTIVITY_EXPORT_CONTACTS = 100;
 
+    // This values must be consistent with ImportExportDialogFragment.SUBACTIVITY_EXPORT_CONTACTS.
+    // This values is set 101,That is avoid to conflict with other new subactivity.
+    public static final int SUBACTIVITY_SHARE_VISILBLE_CONTACTS = 101;
+
     private final String[] LOOKUP_PROJECTION = new String[] {
             Contacts.LOOKUP_KEY
     };
@@ -138,7 +142,7 @@ public class ImportExportDialogFragment extends DialogFragment
     private static final int MAX_COUNT_SIM_CARD = 250;
 
     // the max count limit of allowing to share contacts
-    private static final int MAX_COUNT_ALLOW_SHARE_CONTACT = 2000;
+    public static final int MAX_COUNT_ALLOW_SHARE_CONTACT = 2000;
 
     //this flag is the same as defined in MultiPickContactActivit
     private static final String EXT_NOT_SHOW_SIM_FLAG = "not_sim_show";
@@ -363,46 +367,13 @@ public class ImportExportDialogFragment extends DialogFragment
     }
 
     private void doShareVisibleContacts() {
-        // TODO move the query into a loader and do this in a background thread
-        final Cursor cursor = getActivity().getContentResolver().query(Contacts.CONTENT_URI,
-                LOOKUP_PROJECTION, Contacts.IN_VISIBLE_GROUP + "!=0", null, null);
-        if (cursor != null) {
-            try {
-                if (!cursor.moveToFirst()) {
-                    Toast.makeText(getActivity(), R.string.share_error, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // The premise of allowing to share contacts is that the
-                // amount of those contacts which have been selected to
-                // append and will be put into intent as extra data to
-                // deliver is not more that 2000, because too long arguments
-                // will cause TransactionTooLargeException in binder.
-                if (cursor.getCount() > MAX_COUNT_ALLOW_SHARE_CONTACT) {
-                    Toast.makeText(getActivity(), R.string.share_failed, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                StringBuilder uriListBuilder = new StringBuilder();
-                int index = 0;
-                do {
-                    if (index != 0)
-                        uriListBuilder.append(':');
-                    uriListBuilder.append(cursor.getString(0));
-                    index++;
-                } while (cursor.moveToNext());
-                Uri uri = Uri.withAppendedPath(
-                        Contacts.CONTENT_MULTI_VCARD_URI,
-                        Uri.encode(uriListBuilder.toString()));
-
-                final Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType(Contacts.CONTENT_VCARD_TYPE);
-                intent.putExtra(Intent.EXTRA_STREAM, uri);
-                getActivity().startActivity(intent);
-            } finally {
-                cursor.close();
-            }
-        }
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType(Contacts.CONTENT_TYPE);
+        ContactListFilter filter = new ContactListFilter(
+                ContactListFilter.FILTER_TYPE_CUSTOM, null, null, null, null);
+        intent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER,
+                filter);
+        getActivity().startActivityForResult(intent, SUBACTIVITY_SHARE_VISILBLE_CONTACTS);
     }
 
     /**
@@ -667,6 +638,8 @@ public class ImportExportDialogFragment extends DialogFragment
             String accountName = getAccountNameBy(subscription);
             String accountType = SimContactsConstants.ACCOUNT_TYPE_SIM;
             Account account = new Account(accountName,accountType);
+            boolean isAirplaneMode = false;
+            boolean isSimCardFull = false;
             // GoogleSource.createMyContactsIfNotExist(account, getActivity());
             // in case export is stopped, record the count of inserted successfully
             int insertCount = 0;
@@ -701,9 +674,8 @@ public class ImportExportDialogFragment extends DialogFragment
             if (type == TYPE_SELECT) {
                 if (contactList != null) {
                     Iterator<String[]> iterator = contactList.iterator();
-                    boolean isSimCardFull = false;
-                    boolean isAirMode = false;
-                    while (iterator.hasNext() && !canceled && !isAirMode) {
+
+                    while (iterator.hasNext() && !canceled && !isAirplaneMode) {
                         String[] contactInfo = iterator.next();
                         String name = "";
                         ArrayList<String> arrayNumber = new ArrayList<String>();
@@ -794,10 +766,10 @@ public class ImportExportDialogFragment extends DialogFragment
                                         mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
                                         break;
                                     } else {
-                                        mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
-                                        isAirMode = (System.getInt(mpeople.getContentResolver(),
-                                                System.AIRPLANE_MODE_ON, 0) != 0);
-                                        if (isAirMode) {
+                                        isAirplaneMode = (System.getInt(mpeople.getContentResolver(),
+                                                Settings.Global.AIRPLANE_MODE_ON, 0) != 0);
+                                        if (isAirplaneMode) {
+                                            mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
                                             break;
                                         } else {
                                             continue;
@@ -844,12 +816,14 @@ public class ImportExportDialogFragment extends DialogFragment
                 mExportProgressDlg = null;
             }
 
-            // if canceled, show toast indicating export is interrupted.
-            if (canceled) {
-                mToastHandler.sendMessage(mToastHandler.obtainMessage(TOAST_EXPORT_CANCELED,
-                    insertCount, 0));
-            } else {
-                mToastHandler.sendEmptyMessage(TOAST_EXPORT_FINISHED);
+            if (!isAirplaneMode && !isSimCardFull) {
+                // if canceled, show toast indicating export is interrupted.
+                if (canceled) {
+                    mToastHandler.sendMessage(mToastHandler.obtainMessage(TOAST_EXPORT_CANCELED,
+                            insertCount, 0));
+                } else {
+                    mToastHandler.sendEmptyMessage(TOAST_EXPORT_FINISHED);
+                }
             }
         isExportingToSIM = false;
         Intent intent = new Intent(SimContactsConstants.INTENT_EXPORT_COMPLETE);
