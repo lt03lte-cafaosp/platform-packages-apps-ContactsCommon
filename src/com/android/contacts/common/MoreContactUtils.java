@@ -895,8 +895,12 @@ public class MoreContactUtils {
             String accountName) {
         String returnVal = "";
         if ((SimAccountType.ACCOUNT_TYPE).equals(accountType)) {
-            int sub = MoreContactUtils.getSubFromAccountName(accountName);
-            returnVal = MoreContactUtils.getSimSpnName(sub);
+            if (getMSimTelephonyManager().isMultiSimEnabled()) {
+                int sub = MoreContactUtils.getSubFromAccountName(accountName);
+                returnVal = MoreContactUtils.getSimSpnName(sub);
+            } else {
+                returnVal = at.getDisplayLabel(mContext).toString();
+            }
         } else {
             returnVal = at.getDisplayLabel(mContext).toString();
         }
@@ -905,12 +909,12 @@ public class MoreContactUtils {
 
     public static String getAccountUserName(Context mContext, String accountType,
             String accountName) {
-        String accountUserName = "";
+        String accountUserName = accountName;
         if ((SimAccountType.ACCOUNT_TYPE).equals(accountType)) {
-            int sub = MoreContactUtils.getSubFromAccountName(accountName);
-            accountUserName = MoreContactUtils.getMultiSimAliasesName(mContext, sub);
-        } else {
-            accountUserName = accountName;
+            if (getMSimTelephonyManager().isMultiSimEnabled()) {
+                int sub = MoreContactUtils.getSubFromAccountName(accountName);
+                accountUserName = MoreContactUtils.getMultiSimAliasesName(mContext, sub);
+            }
         }
         return accountUserName;
     }
