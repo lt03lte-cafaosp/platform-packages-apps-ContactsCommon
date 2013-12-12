@@ -93,8 +93,10 @@
     <string name="name_given" msgid="1560204576305608571">"名字"</string>
     <string name="name_family" msgid="1267097554034721002">"姓氏"</string>
     <string name="name_prefix" msgid="8219879405071462309">"姓名前缀"</string>
+    <string name="account_sim">SIM卡</string>
     <string name="name_middle" msgid="3951610314424632183">"中间名"</string>
     <string name="name_suffix" msgid="5436984808550075931">"姓名后缀"</string>
+    <string name="name_for_sim">姓名</string>
     <string name="name_phonetic" msgid="2249169131785620210">"姓名拼音"</string>
     <string name="name_phonetic_given" msgid="993707744185923412">"名字拼音"</string>
     <string name="name_phonetic_middle" msgid="5970174427249235577">"中间名拼音"</string>
