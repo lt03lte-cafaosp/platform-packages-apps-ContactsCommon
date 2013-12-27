@@ -159,6 +159,7 @@
     <string name="listCustomView" msgid="1915154113477432033">"聯絡人自訂檢視"</string>
     <string name="listSingleContact" msgid="8525131203887307088">"單一聯絡人"</string>
     <string name="dialog_new_contact_account" msgid="4107520273478326011">"在帳戶下建立聯絡人"</string>
+    <string name="export_to_sim">"導出到 SIM 卡"</string>
     <string name="import_from_sim" msgid="4749894687871835873">"從 SIM 卡匯入"</string>
     <string name="import_from_sdcard" product="default" msgid="6423964533801496764">"從儲存裝置匯入"</string>
     <string name="cancel_import_confirmation_message" msgid="7764915400478970495">"確定要取消匯入 <xliff:g id="FILENAME">%s</xliff:g>？"</string>
@@ -243,4 +244,26 @@
     <string name="contact_status_update_attribution" msgid="8419168578670128134">"透過 <xliff:g id="SOURCE">%1$s</xliff:g>"</string>
     <string name="contact_status_update_attribution_with_date" msgid="7492465535645607473">"<xliff:g id="DATE">%1$s</xliff:g> (透過 <xliff:g id="SOURCE">%2$s</xliff:g>)"</string>
     <string name="label_groups">"群組"</string>
+    <string name="exporting">"正在導出"</string>
+    <string name="reading_vcard_files">讀取Vcard文件</string>
+    <string name="export_failed">"導出失敗"</string>
+    <string name="sim_card_full">"發生錯誤，SIM卡已滿。"</string>
+    <string name="export_finished">"導出結束"</string>
+    <string name="export_no_phone_or_email">導出失敗, <xliff:g id="name">%s</xliff:g>沒有電話號碼或者郵箱地址</string>
+    <string name="tag_too_long">"發生錯誤，聯絡人姓名過長。"</string>
+    <string name="import_from_sim_select">"選擇SIM卡進行導入"</string>
+    <string name="no_sdcard_title" product="nosdcard">"無存儲設備"</string>
+    <string name="no_sdcard_title" product="default">"無 SD 卡"</string>
+    <string name="deleteConfirmation_title">"要刪除聯絡人嗎？"</string>
+    <string name="ContactMultiDeleteConfirmation">"將會刪除這些聯絡人。"</string>
+    <string name="readOnlyContactDeleteConfirmation" msgid="2137170726670196909">"此聯絡人包含來自多個帳戶的資訊。您的聯絡人清單不會顯示唯讀帳戶的資訊 (這些資訊並不會被刪除)。"</string>
+    <string name="readOnlyContactWarning" msgid="7808825687289848259">"您無法刪除唯讀帳戶的聯絡人，但可在聯絡人清單中隱藏這些聯絡人。"</string>
+    <string name="multipleContactDeleteConfirmation" msgid="938900978442960800">"刪除此聯絡人將會刪除多個帳戶的資訊。"</string>
+
+    <string name="slot_name">"卡"</string>
+
+    <string name="copy_done">複制成功！</string>
+    <string name="copy_failure">複制失敗！</string>
+    <string name="card_no_space">卡記錄已滿，部分信息未複制</string>
+    <string name="no_empty_email_in_usim">卡上電子郵件空間已滿，部分郵件信息將不會複制</string>
 </resources>
