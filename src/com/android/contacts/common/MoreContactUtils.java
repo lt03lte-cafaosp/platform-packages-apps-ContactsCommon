@@ -26,8 +26,10 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -37,6 +39,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
+import android.provider.Settings;
 import android.telephony.MSimTelephonyManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
@@ -70,9 +73,72 @@ public class MoreContactUtils {
     private static final int ANR_POS = 3;
     private static final String PHONEBOOK_MSIM = "simphonebook_msim";
     private static final String PHONEBOOK = "simphonebook";
+    public static final int FRAMEWORK_ICON = 1;
+    public static final int CONTACTSCOMMON_ICON = 2;
+    public static final int DIALER_ICON = 3;
     public static final String[] MULTI_SIM_NAME = {
             "perferred_name_sub1", "preferred_name_sub2"
     };
+    public static final String PREFERRED_SIM_ICON_INDEX = "preferred_sim_icon_index";
+
+    // Default contact pictures for sim contacts in DSDS mode
+    public final static int[] IC_CONTACT_PICTURE_180_HOLO_DARKS = {
+            R.drawable.ic_contact_picture_180_holo_dark_1,
+            R.drawable.ic_contact_picture_180_holo_dark_2,
+            R.drawable.ic_contact_picture_180_holo_dark_c,
+            R.drawable.ic_contact_picture_180_holo_dark_g,
+            R.drawable.ic_contact_picture_180_holo_dark_w
+    };
+
+    public final static int[] IC_CONTACT_PICTURE_180_HOLO_LIGHTS = {
+            R.drawable.ic_contact_picture_180_holo_light_1,
+            R.drawable.ic_contact_picture_180_holo_light_2,
+            R.drawable.ic_contact_picture_180_holo_light_c,
+            R.drawable.ic_contact_picture_180_holo_light_g,
+            R.drawable.ic_contact_picture_180_holo_light_w
+    };
+
+    public final static int[] IC_CONTACT_PICTURE_HOLO_DARKS = {
+            R.drawable.ic_contact_picture_holo_dark_1,
+            R.drawable.ic_contact_picture_holo_dark_2,
+            R.drawable.ic_contact_picture_holo_dark_c,
+            R.drawable.ic_contact_picture_holo_dark_g,
+            R.drawable.ic_contact_picture_holo_dark_w
+    };
+
+    public final static int[] IC_CONTACT_PICTURE_HOLO_LIGHTS = {
+            R.drawable.ic_contact_picture_holo_light_1,
+            R.drawable.ic_contact_picture_holo_light_2,
+            R.drawable.ic_contact_picture_holo_light_c,
+            R.drawable.ic_contact_picture_holo_light_g,
+            R.drawable.ic_contact_picture_holo_light_w
+    };
+
+    public final static int[] IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_DARKS = {
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_1,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_2,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_c,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_g,
+            R.drawable.ic_no_angle_contact_picture_180_holo_dark_w
+    };
+
+    public final static int[] IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_LIGHTS = {
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_1,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_2,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_c,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_g,
+            R.drawable.ic_no_angle_contact_picture_180_holo_light_w
+    };
+
+    // Default contact pictures for sim contacts in SSSS mode
+    public final static int IC_CONTACT_PICTURE_180_HOLO_DARK_SIM =
+            R.drawable.ic_contact_picture_180_holo_dark_sim;
+    public final static int IC_CONTACT_PICTURE_180_HOLO_LIGHT_SIM =
+            R.drawable.ic_contact_picture_180_holo_light_sim;
+    public final static int IC_CONTACT_PICTURE_HOLO_DARK_SIM =
+            R.drawable.ic_contact_picture_holo_dark_sim;
+    public final static int IC_CONTACT_PICTURE_HOLO_LIGHT_SIM =
+            R.drawable.ic_contact_picture_holo_light_sim;
     /**
      * Returns true if two data with mimetypes which represent values in contact entries are
      * considered equal for collapsing in the GUI. For caller-id, use
@@ -252,7 +318,7 @@ public class MoreContactUtils {
     }
 
     public static int getSubscription(String accountType, String accountName) {
-        int subscription = -1;
+        int subscription = SimContactsConstants.SUB_INVALID;
         if (accountType == null || accountName == null)
             return subscription;
         if (accountType.equals(SimContactsConstants.ACCOUNT_TYPE_SIM)) {
@@ -652,4 +718,26 @@ public class MoreContactUtils {
         return getEmailCount(subscription) > 0 ? true : false;
     }
 
+
+    /**
+     * Get SIM card icon index by subscription
+     */
+    public static int getCurrentSimIconIndex(Context context, int subscription) {
+        if (context == null || subscription < SimContactsConstants.SUB_1
+                || subscription >= MSimTelephonyManager.getDefault().getPhoneCount()) {
+            return -1;
+        }
+
+        String simIconIndex = Settings.System.getString(context.getContentResolver(),
+                PREFERRED_SIM_ICON_INDEX);
+        if (TextUtils.isEmpty(simIconIndex)) {
+            return subscription;
+        } else {
+            String[] indexs = simIconIndex.split(",");
+            if (subscription >= indexs.length) {
+                return -1;
+            }
+            return Integer.parseInt(indexs[subscription]);
+        }
+    }
 }

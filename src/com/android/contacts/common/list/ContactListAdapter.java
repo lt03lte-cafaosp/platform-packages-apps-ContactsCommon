@@ -15,6 +15,7 @@
  */
 package com.android.contacts.common.list;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.ContactCounts;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Directory;
+import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.SearchSnippetColumns;
 import android.text.TextUtils;
 import android.view.View;
@@ -47,6 +49,8 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
             Contacts.PHOTO_THUMBNAIL_URI,           // 5
             Contacts.LOOKUP_KEY,                    // 6
             Contacts.IS_USER_PROFILE,               // 7
+            RawContacts.ACCOUNT_TYPE,               // 8
+            RawContacts.ACCOUNT_NAME,               // 9
         };
 
         private static final String[] CONTACT_PROJECTION_ALTERNATIVE = new String[] {
@@ -58,6 +62,8 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
             Contacts.PHOTO_THUMBNAIL_URI,           // 5
             Contacts.LOOKUP_KEY,                    // 6
             Contacts.IS_USER_PROFILE,               // 7
+            RawContacts.ACCOUNT_TYPE,               // 8
+            RawContacts.ACCOUNT_NAME,               // 9
         };
 
         private static final String[] FILTER_PROJECTION_PRIMARY = new String[] {
@@ -69,7 +75,9 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
             Contacts.PHOTO_THUMBNAIL_URI,           // 5
             Contacts.LOOKUP_KEY,                    // 6
             Contacts.IS_USER_PROFILE,               // 7
-            SearchSnippetColumns.SNIPPET,           // 8
+            RawContacts.ACCOUNT_TYPE,               // 8
+            RawContacts.ACCOUNT_NAME,               // 9
+            SearchSnippetColumns.SNIPPET,           // 10
         };
 
         private static final String[] FILTER_PROJECTION_ALTERNATIVE = new String[] {
@@ -81,7 +89,9 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
             Contacts.PHOTO_THUMBNAIL_URI,           // 5
             Contacts.LOOKUP_KEY,                    // 6
             Contacts.IS_USER_PROFILE,               // 7
-            SearchSnippetColumns.SNIPPET,           // 8
+            RawContacts.ACCOUNT_TYPE,               // 8
+            RawContacts.ACCOUNT_NAME,               // 9
+            SearchSnippetColumns.SNIPPET,           // 10
         };
 
         public static final int CONTACT_ID               = 0;
@@ -92,7 +102,9 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
         public static final int CONTACT_PHOTO_URI        = 5;
         public static final int CONTACT_LOOKUP_KEY       = 6;
         public static final int CONTACT_IS_USER_PROFILE  = 7;
-        public static final int CONTACT_SNIPPET          = 8;
+        public static final int CONTACT_ACCOUNT_TYPE      = 8;
+        public static final int CONTACT_ACCOUNT_NAME     = 9;
+        public static final int CONTACT_SNIPPET          = 10;
     }
 
     private CharSequence mUnknownNameText;
@@ -236,12 +248,20 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
             photoId = cursor.getLong(ContactQuery.CONTACT_PHOTO_ID);
         }
 
+        Account account = null;
+        if (!cursor.isNull(ContactQuery.CONTACT_ACCOUNT_TYPE)
+                && !cursor.isNull(ContactQuery.CONTACT_ACCOUNT_NAME)) {
+            final String accountType = cursor.getString(ContactQuery.CONTACT_ACCOUNT_TYPE);
+            final String accountName = cursor.getString(ContactQuery.CONTACT_ACCOUNT_NAME);
+            account = new Account(accountName, accountType);
+        }
+
         if (photoId != 0) {
-            getPhotoLoader().loadThumbnail(view.getPhotoView(), photoId, false);
+            getPhotoLoader().loadThumbnail(view.getPhotoView(), photoId, account, false);
         } else {
             final String photoUriString = cursor.getString(ContactQuery.CONTACT_PHOTO_URI);
             final Uri photoUri = photoUriString == null ? null : Uri.parse(photoUriString);
-            getPhotoLoader().loadDirectoryPhoto(view.getPhotoView(), photoUri, false);
+            getPhotoLoader().loadDirectoryPhoto(view.getPhotoView(), photoUri, account, false);
         }
     }
 
