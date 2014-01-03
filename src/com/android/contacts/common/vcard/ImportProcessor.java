@@ -182,8 +182,6 @@ public class ImportProcessor extends ProcessorBase implements VCardEntryHandler 
             }
         }
 
-        mService.handleFinishImportNotification(mJobId, successful);
-
         if (successful) {
             // TODO: successful becomes true even when cancelled. Should return more appropriate
             // value
@@ -210,6 +208,8 @@ public class ImportProcessor extends ProcessorBase implements VCardEntryHandler 
             Log.w(LOG_TAG, "Failed to read one vCard file: " + uri);
             mFailedUris.add(uri);
         }
+
+        mService.handleFinishImportNotification(mJobId, successful);
     }
 
     private boolean readOneVCard(InputStream is, int vcardType, String charset,
