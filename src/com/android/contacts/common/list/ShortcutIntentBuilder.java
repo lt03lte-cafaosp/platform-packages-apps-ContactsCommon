@@ -19,6 +19,7 @@
  */
 package com.android.contacts.common.list;
 
+import android.accounts.Account;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -40,12 +41,16 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.RawContacts;
+import android.telephony.MSimTelephonyManager;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 
 import com.android.contacts.common.CallUtil;
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
+import com.android.contacts.common.model.account.SimAccountType;
 
 /**
  * Constructs shortcut intents.
@@ -55,17 +60,23 @@ public class ShortcutIntentBuilder {
     private static final String[] CONTACT_COLUMNS = {
         Contacts.DISPLAY_NAME,
         Contacts.PHOTO_ID,
+        RawContacts.ACCOUNT_TYPE,
+        RawContacts.ACCOUNT_NAME,
     };
 
     private static final int CONTACT_DISPLAY_NAME_COLUMN_INDEX = 0;
     private static final int CONTACT_PHOTO_ID_COLUMN_INDEX = 1;
+    private static final int CONTACT_ACCOUNT_TYPE_COLUMN_INDEX = 2;
+    private static final int CONTACT_ACCOUNT_NAME_COLUMN_INDEX = 3;
 
     private static final String[] PHONE_COLUMNS = {
         Phone.DISPLAY_NAME,
         Phone.PHOTO_ID,
         Phone.NUMBER,
         Phone.TYPE,
-        Phone.LABEL
+        Phone.LABEL,
+        RawContacts.ACCOUNT_TYPE,
+        RawContacts.ACCOUNT_NAME,
     };
 
     private static final int PHONE_DISPLAY_NAME_COLUMN_INDEX = 0;
@@ -73,6 +84,8 @@ public class ShortcutIntentBuilder {
     private static final int PHONE_NUMBER_COLUMN_INDEX = 2;
     private static final int PHONE_TYPE_COLUMN_INDEX = 3;
     private static final int PHONE_LABEL_COLUMN_INDEX = 4;
+    private static final int PHONE_ACCOUNT_TYPE_COLUMN_INDEX = 5;
+    private static final int PHONE_ACCOUNT_NAME_COLUMN_INDEX = 6;
 
     private static final String[] PHOTO_COLUMNS = {
         Photo.PHOTO,
@@ -183,6 +196,8 @@ public class ShortcutIntentBuilder {
     }
 
     private final class ContactLoadingAsyncTask extends LoadingAsyncTask {
+        private Account mAccount;
+
         public ContactLoadingAsyncTask(Uri uri) {
             super(uri);
         }
@@ -196,6 +211,11 @@ public class ShortcutIntentBuilder {
                     if (cursor.moveToFirst()) {
                         mDisplayName = cursor.getString(CONTACT_DISPLAY_NAME_COLUMN_INDEX);
                         mPhotoId = cursor.getLong(CONTACT_PHOTO_ID_COLUMN_INDEX);
+                        final String accountType = cursor
+                                .getString(CONTACT_ACCOUNT_TYPE_COLUMN_INDEX);
+                        final String accountName = cursor
+                                .getString(CONTACT_ACCOUNT_NAME_COLUMN_INDEX);
+                        mAccount = new Account(accountName, accountType);
                     }
                 } finally {
                     cursor.close();
@@ -204,7 +224,7 @@ public class ShortcutIntentBuilder {
         }
         @Override
         protected void onPostExecute(Void result) {
-            createContactShortcutIntent(mUri, mContentType, mDisplayName, mBitmapData);
+            createContactShortcutIntent(mUri, mContentType, mDisplayName, mAccount, mBitmapData);
         }
     }
 
@@ -213,6 +233,7 @@ public class ShortcutIntentBuilder {
         private String mPhoneNumber;
         private int mPhoneType;
         private String mPhoneLabel;
+        private Account mAccount;
 
         public PhoneNumberLoadingAsyncTask(Uri uri, String shortcutAction) {
             super(uri);
@@ -231,6 +252,11 @@ public class ShortcutIntentBuilder {
                         mPhoneNumber = cursor.getString(PHONE_NUMBER_COLUMN_INDEX);
                         mPhoneType = cursor.getInt(PHONE_TYPE_COLUMN_INDEX);
                         mPhoneLabel = cursor.getString(PHONE_LABEL_COLUMN_INDEX);
+                        final String accountType = cursor
+                                .getString(PHONE_ACCOUNT_TYPE_COLUMN_INDEX);
+                        final String accountName = cursor
+                                .getString(PHONE_ACCOUNT_NAME_COLUMN_INDEX);
+                        mAccount = new Account(accountName, accountType);
                     }
                 } finally {
                     cursor.close();
@@ -241,24 +267,43 @@ public class ShortcutIntentBuilder {
         @Override
         protected void onPostExecute(Void result) {
             createPhoneNumberShortcutIntent(mUri, mDisplayName, mBitmapData, mPhoneNumber,
-                    mPhoneType, mPhoneLabel, mShortcutAction);
+                    mPhoneType, mPhoneLabel, mAccount, mShortcutAction);
         }
     }
 
-    private Bitmap getPhotoBitmap(byte[] bitmapData) {
+    private Bitmap getPhotoBitmap(byte[] bitmapData, Account account) {
         Bitmap bitmap;
         if (bitmapData != null) {
             bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length, null);
         } else {
-            bitmap = ((BitmapDrawable) mContext.getResources().getDrawableForDensity(
-                    R.drawable.ic_contact_picture_holo_light, mIconDensity)).getBitmap();
+            if (account != null && SimAccountType.ACCOUNT_TYPE.equals(account.type)) {
+                if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                    int sub = MoreContactUtils.getSubscription(account.type, account.name);
+                    int index = MoreContactUtils.getCurrentSimIconIndex(mContext, sub);
+                    if (index < 0) {
+                        bitmap = getBitmapByResId(R.drawable.ic_contact_picture_holo_light);
+                    } else {
+                        bitmap = getBitmapByResId(MoreContactUtils
+                                .IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_LIGHTS[index]);
+                    }
+                } else {
+                    bitmap = getBitmapByResId(MoreContactUtils.IC_CONTACT_PICTURE_HOLO_LIGHT_SIM);
+                }
+            } else {
+                bitmap = getBitmapByResId(R.drawable.ic_contact_picture_holo_light);
+            }
         }
         return bitmap;
     }
 
-    private void createContactShortcutIntent(Uri contactUri, String contentType, String displayName,
-            byte[] bitmapData) {
-        Bitmap bitmap = getPhotoBitmap(bitmapData);
+    private Bitmap getBitmapByResId(int resId) {
+        return ((BitmapDrawable) mContext.getResources()
+                .getDrawableForDensity(resId, mIconDensity)).getBitmap();
+    }
+
+    private void createContactShortcutIntent(Uri contactUri, String contentType,
+            String displayName, Account account, byte[] bitmapData) {
+        Bitmap bitmap = getPhotoBitmap(bitmapData, account);
 
         Intent shortcutIntent = new Intent(ContactsContract.QuickContact.ACTION_QUICK_CONTACT);
 
@@ -295,9 +340,9 @@ public class ShortcutIntentBuilder {
     }
 
     private void createPhoneNumberShortcutIntent(Uri uri, String displayName, byte[] bitmapData,
-            String phoneNumber, int phoneType, String phoneLabel, String shortcutAction) {
-        Bitmap bitmap = getPhotoBitmap(bitmapData);
-
+            String phoneNumber, int phoneType, String phoneLabel, Account account,
+            String shortcutAction) {
+        Bitmap bitmap = getPhotoBitmap(bitmapData, account);
         Uri phoneUri;
         if (Intent.ACTION_CALL.equals(shortcutAction)) {
             // Make the URI a direct tel: URI so that it will always continue to work
