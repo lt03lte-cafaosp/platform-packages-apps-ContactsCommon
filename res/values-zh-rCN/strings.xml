@@ -272,4 +272,11 @@
     <string name="copy_failure">复制失败！</string>
     <string name="card_no_space">卡记录已满，部分信息未复制</string>
     <string name="no_empty_email_in_usim">卡上电子邮件空间已满，部分邮件信息将不会复制</string>
+    <!-- Menu item used to initiate ip call -->
+    <string name="ip_call_by_slot">"IP拨号通过<xliff:g id="subName">%s</xliff:g>"</string>
+    <string name="no_ip_number">"没有IP号"</string>
+    <string name="no_ip_number_on_sim_card">"SIM卡上没有IP号"</string>
+    <string name="set_ip_number">"设置IP号"</string>
+    <string name="ipcall_dialog_title">"IP电话设置"</string>
+    <string name="ipcall_dialog_edit_hint">"请输入IP电话前缀"</string>
 </resources>

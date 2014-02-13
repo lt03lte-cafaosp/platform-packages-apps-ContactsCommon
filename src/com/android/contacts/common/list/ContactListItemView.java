@@ -17,6 +17,7 @@
 package com.android.contacts.common.list;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.database.CharArrayBuffer;
@@ -29,6 +30,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
+import android.telephony.MSimTelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -46,11 +48,14 @@ import android.widget.ImageView.ScaleType;
 import android.widget.QuickContactBadge;
 import android.widget.TextView;
 
+import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.ContactPresenceIconUtil;
 import com.android.contacts.common.ContactStatusUtil;
+import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.format.TextHighlighter;
 import com.android.contacts.common.util.SearchUtil;
+import com.android.internal.telephony.MSimConstants;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -171,6 +176,17 @@ public class ContactListItemView extends ViewGroup
     private TextView mCountView;
     private ImageView mPresenceIcon;
 
+    private View mSecondaryActionContainerView;
+
+    private View divider_sub1;
+    private View layoutSub1;
+    private ImageView callButtonSub1;
+    private ImageView callIconSub1;
+
+    private View divider_sub2;
+    private View layoutSub2;
+    private ImageView callButtonSub2;
+    private ImageView callIconSub2;
     private ColorStateList mSecondaryTextColor;
 
 
@@ -423,6 +439,12 @@ public class ContactListItemView extends ViewGroup
         }
         mLabelAndDataViewMaxHeight = Math.max(mLabelViewHeight, mDataViewHeight);
 
+        if (isVisible(mSecondaryActionContainerView)) {
+            mSecondaryActionContainerView.measure(
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        }
+
         if (isVisible(mSnippetView)) {
             mSnippetView.measure(
                     MeasureSpec.makeMeasureSpec(effectiveWidth, MeasureSpec.EXACTLY),
@@ -578,6 +600,7 @@ public class ContactListItemView extends ViewGroup
                 mLabelAndDataViewMaxHeight + mSnippetTextViewHeight + mStatusTextViewHeight;
         int textTopBound = (bottomBound + topBound - totalTextHeight) / 2;
 
+        final int nameTopBound = textTopBound;
         // Layout all text view and presence icon
         // Put name TextView first
         if (isVisible(mNameTextView)) {
@@ -586,6 +609,13 @@ public class ContactListItemView extends ViewGroup
                     rightBound,
                     textTopBound + mNameTextViewHeight);
             textTopBound += mNameTextViewHeight;
+        }
+
+        if (isVisible(mSecondaryActionContainerView)) {
+            mSecondaryActionContainerView.layout(rightBound
+                    - mSecondaryActionContainerView.getMeasuredWidth(), nameTopBound,
+                    rightBound,
+                    nameTopBound + mSecondaryActionContainerView.getMeasuredHeight());
         }
 
         // Presence and status
@@ -1013,6 +1043,70 @@ public class ContactListItemView extends ViewGroup
         }
     }
 
+    public void refreshButton() {
+        if (mSecondaryActionContainerView != null && layoutSub1 != null) {
+            MoreContactUtils.controlCallIconDisplay(mContext, layoutSub1, callButtonSub1,
+                    callIconSub1, layoutSub2, callButtonSub2, callIconSub2, divider_sub1,
+                    divider_sub2);
+        }
+    }
+    public void setSecondaryActionViewContainer() {
+        getSecondaryActionViewContainer();
+        mSecondaryActionContainerView.setVisibility(View.VISIBLE);
+    }
+
+    public View getSecondaryActionViewContainer() {
+        if (mSecondaryActionContainerView == null) {
+
+            // mSecondaryActionContainerView initialize
+            mSecondaryActionContainerView = inflate(mContext, R.layout.secondary_action, null);
+            mSecondaryActionContainerView.setActivated(isActivated());
+            mSecondaryActionContainerView.setVisibility(View.VISIBLE);
+
+            divider_sub1 = mSecondaryActionContainerView.findViewById(R.id.divider_sub1);
+            divider_sub1.setBackgroundResource(R.drawable.ic_divider_dashed_holo_dark);
+            layoutSub1 = mSecondaryActionContainerView.findViewById(R.id.layout_sub1);
+            callButtonSub1 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_button_sub1);
+            callButtonSub1.setImageResource(R.drawable.ic_ab_dialer_holo_dark);
+            callIconSub1 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_icon_sub1);
+
+            divider_sub2 = mSecondaryActionContainerView.findViewById(R.id.divider_sub2);
+            divider_sub2.setBackgroundResource(R.drawable.ic_divider_dashed_holo_dark);
+            layoutSub2 = mSecondaryActionContainerView.findViewById(R.id.layout_sub2);
+            callButtonSub2 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_button_sub2);
+            callButtonSub2.setImageResource(R.drawable.ic_ab_dialer_holo_dark);
+            callIconSub2 = (ImageView) mSecondaryActionContainerView
+                    .findViewById(R.id.call_icon_sub2);
+
+
+            MoreContactUtils.controlCallIconDisplay(mContext, layoutSub1, callButtonSub1,
+                    callIconSub1, layoutSub2, callButtonSub2, callIconSub2, divider_sub1,
+                    divider_sub2 );
+
+            setSecondaryListener(callButtonSub1, MSimConstants.SUB1);
+            setSecondaryListener(callButtonSub2, MSimConstants.SUB2);
+
+            addView(mSecondaryActionContainerView);
+
+        }
+        return mSecondaryActionContainerView;
+    }
+
+    private void setSecondaryListener(ImageView secondaryView, final int subscription) {
+        secondaryView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = CallUtil.getCallIntent(mDataView.getText().toString());
+                if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                    intent.putExtra(MSimConstants.SUBSCRIPTION_KEY, subscription);
+                }
+                mContext.startActivity(intent);
+            }
+        });
+    }
     /**
      * Sets phone number for a list item. This takes care of number highlighting if the highlight
      * mask exists.
@@ -1022,7 +1116,11 @@ public class ContactListItemView extends ViewGroup
             if (mDataView != null) {
                 mDataView.setVisibility(View.GONE);
             }
+            if (mSecondaryActionContainerView != null) {
+                removeView(mSecondaryActionContainerView);
+            }
         } else {
+            refreshButton();
             getDataView();
             // Sets phone number texts for display after highlighting it, if applicable.
             //CharSequence textToSet = text;
