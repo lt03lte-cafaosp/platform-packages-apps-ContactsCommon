@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/secondary_action_view"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="0dip"
+    android:layout_marginRight="0dip"
+    android:gravity="right"
+    android:orientation="horizontal" >
+
+    <View
+        android:id="@+id/divider_sub1"
+        android:layout_width="@dimen/dsds_vertical_divider_width"
+        android:layout_height="@dimen/dsds_vertical_divider_height"
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="@dimen/dsds_vertical_divider_vertical_margin"
+        android:layout_marginBottom="@dimen/dsds_vertical_divider_vertical_margin"
+        android:visibility="gone"
+        android:background="?android:attr/dividerVertical" />
+
+    <RelativeLayout
+        android:id="@+id/layout_sub1"
+        android:layout_width="@dimen/dsds_btnstyle_layout_width"
+        android:layout_height="@dimen/dsds_btnstyle_layout_height"
+        android:layout_gravity="center" >
+
+        <ImageButton
+            android:id="@+id/call_button_sub1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <ImageView
+            android:id="@+id/call_icon_sub1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dsds_btnstyle_sub_icon_margin_top"
+            android:layout_marginRight="@dimen/dsds_btnstyle_sub_icon_margin_right"
+            android:layout_alignParentRight="true" />
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/divider_sub2"
+        android:layout_width="@dimen/dsds_vertical_divider_width"
+        android:layout_height="@dimen/dsds_vertical_divider_height"
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="@dimen/dsds_vertical_divider_vertical_margin"
+        android:layout_marginBottom="@dimen/dsds_vertical_divider_vertical_margin"
+        android:visibility="gone"
+        android:background="?android:attr/dividerVertical" />
+
+    <RelativeLayout
+        android:id="@+id/layout_sub2"
+        android:layout_width="@dimen/dsds_btnstyle_layout_width"
+        android:layout_height="@dimen/dsds_btnstyle_layout_height"
+        android:layout_gravity="center" >
+
+        <ImageButton
+            android:id="@+id/call_button_sub2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <ImageView
+            android:id="@+id/call_icon_sub2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dsds_btnstyle_sub_icon_margin_top"
+            android:layout_marginRight="@dimen/dsds_btnstyle_sub_icon_margin_right"
+            android:layout_alignParentRight="true" />
+    </RelativeLayout>
+
+</LinearLayout>
