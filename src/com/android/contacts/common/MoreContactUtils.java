@@ -86,8 +86,8 @@ public class MoreContactUtils {
             "preferred_name_sub2" };
 
     public static final String PREFERRED_SIM_ICON_INDEX = "preferred_sim_icon_index";
-    public static final String[] IPCALL_PREFIX = { "ipcall_prefix_sub1",
-            "ipcall_prefix_sub2" };
+    public static final String[] IPCALL_PREFIX = { "ip_call_prefix_sub1",
+            "ip_call_prefix_sub2" };
 
     // Default contact pictures for sim contacts in DSDS mode
     public final static int[] IC_CONTACT_PICTURE_180_HOLO_DARKS = {
