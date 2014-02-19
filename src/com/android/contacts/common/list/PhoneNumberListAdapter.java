@@ -334,6 +334,7 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
     protected void bindView(View itemView, int partition, Cursor cursor, int position) {
         ContactListItemView view = (ContactListItemView)itemView;
 
+        view.setSecondaryActionViewContainer();
         setHighlight(view, cursor);
 
         // Look at elements before and after this position, checking if contact IDs are same.

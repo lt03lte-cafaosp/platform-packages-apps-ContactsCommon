@@ -20,10 +20,12 @@ import android.accounts.Account;
 import com.android.i18n.phonenumbers.NumberParseException;
 import com.android.i18n.phonenumbers.PhoneNumberUtil;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.res.TypedArray;
@@ -45,12 +47,16 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.contacts.common.model.account.AccountType;
 import com.android.contacts.common.model.account.SimAccountType;
 import com.android.internal.telephony.IIccPhoneBook;
+import com.android.internal.telephony.MSimConstants;
 import com.android.internal.telephony.msim.IIccPhoneBookMSim;
 
 import java.util.ArrayList;
@@ -76,10 +82,12 @@ public class MoreContactUtils {
     public static final int FRAMEWORK_ICON = 1;
     public static final int CONTACTSCOMMON_ICON = 2;
     public static final int DIALER_ICON = 3;
-    public static final String[] MULTI_SIM_NAME = {
-            "perferred_name_sub1", "preferred_name_sub2"
-    };
+    public static final String[] MULTI_SIM_NAME = { "perferred_name_sub1",
+            "preferred_name_sub2" };
+
     public static final String PREFERRED_SIM_ICON_INDEX = "preferred_sim_icon_index";
+    public static final String[] IPCALL_PREFIX = { "ip_call_prefix_sub1",
+            "ip_call_prefix_sub2" };
 
     // Default contact pictures for sim contacts in DSDS mode
     public final static int[] IC_CONTACT_PICTURE_180_HOLO_DARKS = {
@@ -738,6 +746,236 @@ public class MoreContactUtils {
                 return -1;
             }
             return Integer.parseInt(indexs[subscription]);
+        }
+    }
+
+    /**
+     * Get SIM card icon
+     */
+    public static Drawable getMultiSimIcon(Context context, int style, int subscription) {
+        if (context == null || subscription < 0
+                || subscription >= getMSimTelephonyManager().getPhoneCount()) {
+            return null;
+        }
+
+        TypedArray icons;
+        if (style == CONTACTSCOMMON_ICON) {
+            icons = context.getResources().obtainTypedArray(
+                    com.android.contacts.common.R.array.sim_icons_for_account);
+        } else if (style == DIALER_ICON) {
+            icons = context.getResources().obtainTypedArray(
+                    com.android.contacts.common.R.array.sim_icons_for_dialer);
+        } else {
+            icons = context.getResources().obtainTypedArray(
+                    com.android.internal.R.array.sim_icons);
+        }
+
+        int index = getCurrentSimIconIndex(context, subscription);
+        if (index < 0) {
+            return null;
+        } else {
+            return icons.getDrawable(index);
+        }
+    }
+
+    /**
+     * Check one SIM card is enabled
+     */
+    public static boolean isMultiSimEnable(int slotId) {
+        MSimTelephonyManager mSimTelManager = getMSimTelephonyManager();
+        if (mSimTelManager.isMultiSimEnabled()) {
+            if (TelephonyManager.SIM_STATE_READY != mSimTelManager
+                    .getSimState(slotId)) {
+                return false;
+            }
+            return true;
+        } else {
+            if (slotId == MSimConstants.SUB1)
+                return true;
+            return false;
+        }
+    }
+
+    public static int getEnabledSimCount() {
+        MSimTelephonyManager mSimTelManager = getMSimTelephonyManager();
+        int mPhoneCount = mSimTelManager.getPhoneCount();
+        int enabledSimCount = 0;
+        for (int i = 0; i < mPhoneCount; i++) {
+            if (TelephonyManager.SIM_STATE_READY == mSimTelManager.getSimState(i)) {
+                enabledSimCount++;
+            }
+        }
+        return enabledSimCount;
+    }
+
+    /**
+     * Get two-button style status
+     * if return true , it is two button style
+     * else is one button style
+     */
+    public static boolean getButtonStyle(Context mContext) {
+        if (getMSimTelephonyManager().isMultiSimEnabled()) {
+            return mContext.getResources().getBoolean(R.bool.btn_style);
+        } else {
+            return false;
+        }
+    }
+
+    private static MSimTelephonyManager getMSimTelephonyManager() {
+        return MSimTelephonyManager.getDefault();
+    }
+
+    /**
+     * Setting two-button display
+     */
+    public static void controlCallIconDisplay(Context mContext,
+            View layoutSub1, View buttonSub1, ImageView iconSub1,
+            View layoutSub2, View buttonSub2, ImageView iconSub2,
+            View divider_sub1, View divider_sub2) {
+        if (divider_sub2 != null) {
+            divider_sub2.setVisibility(View.GONE);
+        }
+        final boolean sub1Enable = isMultiSimEnable(MSimConstants.SUB1);
+        final boolean sub2Enable = isMultiSimEnable(MSimConstants.SUB2);
+        final boolean bothEnable = sub1Enable && sub2Enable;
+        final boolean onlySub1Enable = sub1Enable && !sub2Enable;
+        final boolean onlySub2Enable = !sub1Enable && sub2Enable;
+        final boolean bothDisable = !sub1Enable && !sub2Enable;
+
+        // SSSS mode
+        if (!MoreContactUtils.getMSimTelephonyManager().isMultiSimEnabled()) {
+            divider_sub1.setVisibility(View.VISIBLE);
+            layoutSub1.setVisibility(View.VISIBLE);
+            buttonSub1.setVisibility(View.VISIBLE);
+            iconSub1.setVisibility(View.GONE);
+            layoutSub2.setVisibility(View.GONE);
+            buttonSub2.setVisibility(View.GONE);
+            iconSub2.setVisibility(View.GONE);
+        } else { // DSDS mode
+            // divider's visibility in two button style
+            if (MoreContactUtils.getButtonStyle(mContext)) {
+                iconSub1.setImageDrawable(MoreContactUtils.getMultiSimIcon(
+                        mContext, MoreContactUtils.FRAMEWORK_ICON,
+                        MSimConstants.SUB1));
+                iconSub2.setImageDrawable(MoreContactUtils.getMultiSimIcon(
+                        mContext, MoreContactUtils.FRAMEWORK_ICON,
+                        MSimConstants.SUB2));
+
+                if (bothEnable) {
+                    divider_sub1.setVisibility(View.GONE);
+                    divider_sub2.setVisibility(View.VISIBLE);
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.VISIBLE);
+                    layoutSub2.setVisibility(View.VISIBLE);
+                    buttonSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.VISIBLE);
+                }
+                if (onlySub1Enable) {
+                    divider_sub1.setVisibility(View.VISIBLE);
+                    divider_sub2.setVisibility(View.GONE);
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.GONE);
+                    buttonSub2.setVisibility(View.GONE);
+                    iconSub2.setVisibility(View.GONE);
+                }
+                if (onlySub2Enable) {
+                    divider_sub1.setVisibility(View.GONE);
+                    divider_sub2.setVisibility(View.VISIBLE);
+                    layoutSub1.setVisibility(View.GONE);
+                    buttonSub1.setVisibility(View.GONE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.VISIBLE);
+                    buttonSub2.setVisibility(View.VISIBLE);
+                    iconSub2.setVisibility(View.GONE);
+                }
+                if (bothDisable) {
+                    divider_sub1.setVisibility(View.VISIBLE);
+                    divider_sub2.setVisibility(View.GONE);
+                    layoutSub1.setVisibility(View.VISIBLE);
+                    buttonSub1.setVisibility(View.VISIBLE);
+                    iconSub1.setVisibility(View.GONE);
+                    layoutSub2.setVisibility(View.GONE);
+                    buttonSub2.setVisibility(View.GONE);
+                    iconSub2.setVisibility(View.GONE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get SIM card SPN name, e.g. China Union
+     */
+    public static String getSimSpnName(int subscription) {
+        MSimTelephonyManager mSimTelManager = getMSimTelephonyManager();
+        String simSpnName = "";
+        simSpnName = mSimTelManager.getSimOperatorName(subscription);
+        if (TextUtils.isEmpty(simSpnName)) {
+            // if could not get the operator name, use account name instead of
+            simSpnName = getSimAccountName(subscription);
+        }
+        return simSpnName;
+    }
+
+    /**
+     * Check IP call number existing
+     */
+    public static boolean isIPNumberExist(Context mContext, int subscription) {
+        if (mContext == null) {
+            return false;
+        }
+        String ipCallPrefix = Settings.System.getString(mContext.getContentResolver(),
+                IPCALL_PREFIX[subscription]);
+        if (TextUtils.isEmpty(ipCallPrefix)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Display IP call setting dialog
+     */
+    public static void showNoIPNumberDialog(final Context mContext, final int subscription) {
+        try {
+            new AlertDialog.Builder(mContext)
+                    .setTitle(R.string.no_ip_number)
+                    .setMessage(R.string.no_ip_number_on_sim_card)
+                    .setPositiveButton(R.string.set_ip_number,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    setIPNumber(mContext, subscription);
+                                }
+                            }).setNegativeButton(android.R.string.cancel, null).show();
+        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * Setting IP Call number
+     */
+    public static void setIPNumber(final Context mContext, final int subscription) {
+        try {
+            LayoutInflater mInflater = LayoutInflater.from(mContext);
+            View v = mInflater.inflate(R.layout.ip_prefix_dialog, null);
+            final EditText edit = (EditText) v.findViewById(R.id.ip_prefix_dialog_edit);
+            String ip_prefix = Settings.System.getString(mContext.getContentResolver(),
+                    IPCALL_PREFIX[subscription]);
+            edit.setText(ip_prefix);
+
+            new AlertDialog.Builder(mContext).setTitle(R.string.ipcall_dialog_title)
+                    .setIcon(android.R.drawable.ic_dialog_info).setView(v)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String ip_prefix = edit.getText().toString();
+                            Settings.System.putString(mContext.getContentResolver(),
+                                    IPCALL_PREFIX[subscription], ip_prefix);
+                        }
+                    }).setNegativeButton(android.R.string.cancel, null).show();
+        } catch (Exception e) {
         }
     }
 
