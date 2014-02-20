@@ -432,7 +432,7 @@ public class ContactListItemView extends ViewGroup
             // For performance reason we don't want AT_MOST usually, but when the picture is
             // on right, we need to use it anyway because mDataView is next to mLabelView.
             final int mode = (mPhotoPosition == PhotoPosition.LEFT
-                    ? MeasureSpec.EXACTLY : MeasureSpec.AT_MOST);
+                    ? MeasureSpec.UNSPECIFIED : MeasureSpec.AT_MOST);
             mLabelView.measure(MeasureSpec.makeMeasureSpec(labelWidth, mode),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mLabelViewHeight = mLabelView.getMeasuredHeight();
@@ -600,14 +600,61 @@ public class ContactListItemView extends ViewGroup
                 mLabelAndDataViewMaxHeight + mSnippetTextViewHeight + mStatusTextViewHeight;
         int textTopBound = (bottomBound + topBound - totalTextHeight) / 2;
 
+        int secondaryActionViewWidth = 0;
+        if (mSecondaryActionContainerView != null) {
+            secondaryActionViewWidth = mSecondaryActionContainerView.getMeasuredWidth();
+        }
+        int widthForNameAndLabel = rightBound - leftBound - secondaryActionViewWidth
+                - mTextIndent;
+        if (MoreContactUtils.getEnabledSimCount() < 2) {
+            widthForNameAndLabel -= mTextIndent;
+        }
+        int widthForName = 0;
+        int widthForLabel = 0;
+        if (isVisible(mLabelView)) {
+            if (isVisible(mNameTextView)) {
+                if (mNameTextView.getMeasuredWidth() + mLabelView.getMeasuredWidth()
+                        > widthForNameAndLabel) {
+                    if (mNameTextView.getMeasuredWidth() > widthForNameAndLabel / 3 * 2
+                            && mLabelView.getMeasuredWidth() > widthForNameAndLabel / 3) {
+                        widthForName = widthForNameAndLabel / 3 * 2;
+                        widthForLabel = widthForNameAndLabel - widthForName;
+                    } else if (mNameTextView.getMeasuredWidth() > widthForNameAndLabel / 3 * 2
+                            && mLabelView.getMeasuredWidth() < widthForNameAndLabel / 3) {
+                        widthForLabel = mLabelView.getMeasuredWidth();
+                        widthForName = widthForNameAndLabel - widthForLabel;
+                    } else if (mNameTextView.getMeasuredWidth() < widthForNameAndLabel / 3 * 2
+                            && mLabelView.getMeasuredWidth() > widthForNameAndLabel / 3) {
+                        widthForName = mNameTextView.getMeasuredWidth();
+                        widthForLabel = widthForNameAndLabel - widthForName;
+                    }
+                } else {
+                    widthForName = mNameTextView.getMeasuredWidth();
+                    widthForLabel = mLabelView.getMeasuredWidth();
+                }
+            } else {
+                widthForLabel = widthForNameAndLabel;
+            }
+        } else {
+            widthForName = widthForNameAndLabel;
+        }
+        int nameLeftBound = leftBound;
         final int nameTopBound = textTopBound;
         // Layout all text view and presence icon
         // Put name TextView first
         if (isVisible(mNameTextView)) {
             mNameTextView.layout(leftBound,
                     textTopBound,
-                    rightBound,
+                    leftBound + widthForName,
                     textTopBound + mNameTextViewHeight);
+            nameLeftBound = leftBound + widthForName + mTextIndent;
+        } else {
+            // if name is not visible, label is placed on the top of the data,
+            // so we re-calculate the text top bound.
+            textTopBound = (bottomBound + topBound - totalTextHeight - mLabelViewHeight) / 2;
+        }
+
+        if (isVisible(mNameTextView)) {
             textTopBound += mNameTextViewHeight;
         }
 
@@ -675,11 +722,17 @@ public class ContactListItemView extends ViewGroup
         if (isVisible(mLabelView)) {
             if (mPhotoPosition == PhotoPosition.LEFT) {
                 // When photo is on left, label is placed on the right edge of the list item.
-                mLabelView.layout(rightBound - mLabelView.getMeasuredWidth(),
-                        textTopBound + mLabelAndDataViewMaxHeight - mLabelViewHeight,
-                        rightBound,
-                        textTopBound + mLabelAndDataViewMaxHeight);
-                rightBound -= mLabelView.getMeasuredWidth();
+                if (isVisible(mNameTextView)) {
+                    // if name is visible, label is placed on the right of the name.
+                    mLabelView.layout(nameLeftBound, nameTopBound,
+                            nameLeftBound + widthForLabel, nameTopBound
+                                    + mLabelAndDataViewMaxHeight);
+                } else {
+                    // if name is invisible, label is placed on the top of the data.
+                    mLabelView.layout(leftBound, textTopBound, leftBound
+                            + widthForLabel, textTopBound
+                            + mLabelAndDataViewMaxHeight);
+                }
             } else {
                 // When photo is on right, label is placed on the left of data view.
                 dataLeftBound = leftBound + mLabelView.getMeasuredWidth();
@@ -688,6 +741,9 @@ public class ContactListItemView extends ViewGroup
                         dataLeftBound,
                         textTopBound + mLabelAndDataViewMaxHeight);
                 dataLeftBound += mGapBetweenLabelAndData;
+            }
+            if (!isVisible(mNameTextView)) {
+                textTopBound += mLabelViewHeight;
             }
         }
 
@@ -1064,7 +1120,6 @@ public class ContactListItemView extends ViewGroup
             mSecondaryActionContainerView.setVisibility(View.VISIBLE);
 
             divider_sub1 = mSecondaryActionContainerView.findViewById(R.id.divider_sub1);
-            divider_sub1.setBackgroundResource(R.drawable.ic_divider_dashed_holo_dark);
             layoutSub1 = mSecondaryActionContainerView.findViewById(R.id.layout_sub1);
             callButtonSub1 = (ImageView) mSecondaryActionContainerView
                     .findViewById(R.id.call_button_sub1);
@@ -1073,7 +1128,6 @@ public class ContactListItemView extends ViewGroup
                     .findViewById(R.id.call_icon_sub1);
 
             divider_sub2 = mSecondaryActionContainerView.findViewById(R.id.divider_sub2);
-            divider_sub2.setBackgroundResource(R.drawable.ic_divider_dashed_holo_dark);
             layoutSub2 = mSecondaryActionContainerView.findViewById(R.id.layout_sub2);
             callButtonSub2 = (ImageView) mSecondaryActionContainerView
                     .findViewById(R.id.call_button_sub2);
