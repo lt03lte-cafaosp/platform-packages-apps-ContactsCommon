@@ -277,4 +277,5 @@
     <string name="set_ip_number">"设置IP号"</string>
     <string name="ipcall_dialog_title">"IP电话设置"</string>
     <string name="ipcall_dialog_edit_hint">"请输入IP电话前缀"</string>
+    <string name="select_path">请选择路径</string>
 </resources>
