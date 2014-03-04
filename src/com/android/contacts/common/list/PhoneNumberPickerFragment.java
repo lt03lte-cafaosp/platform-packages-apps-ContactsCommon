@@ -63,6 +63,8 @@ public class PhoneNumberPickerFragment extends ContactEntryListFragment<ContactE
 
     private boolean mUseCallableUri;
 
+    private boolean mShowTwoButton;
+
     private ContactListItemView.PhotoPosition mPhotoPosition =
             ContactListItemView.getDefaultPhotoPosition(false /* normal/non opposite */);
 
@@ -236,11 +238,16 @@ public class PhoneNumberPickerFragment extends ContactEntryListFragment<ContactE
         return mUseCallableUri;
     }
 
+    public void setShowTwoButton(boolean showTwoButton) {
+        mShowTwoButton = showTwoButton;
+    }
+
     @Override
     protected ContactEntryListAdapter createListAdapter() {
         PhoneNumberListAdapter adapter = new PhoneNumberListAdapter(getActivity());
         adapter.setDisplayPhotos(true);
         adapter.setUseCallableUri(mUseCallableUri);
+        adapter.setShowTwoButton(mShowTwoButton);
         return adapter;
     }
 
