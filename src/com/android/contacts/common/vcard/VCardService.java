@@ -33,6 +33,7 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import com.android.contacts.common.R;
+import com.android.contacts.common.MoreContactUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,6 +57,10 @@ public class VCardService extends Service {
     private final static String LOG_TAG = "VCardService";
 
     private final static int NOTIFICATION_ID = 1;
+    public final static int INTERNAL_PATH = 0;
+    public final static int EXTERNAL_PATH = 1;
+    public final static int INVALID_PATH = -1;
+    public final static String STORAGE_PATH = "storage";
     /* package */ final static boolean DEBUG = false;
 
     /* package */ static final int MSG_IMPORT_REQUEST = 1;
@@ -73,6 +78,7 @@ public class VCardService extends Service {
 
     /* package */ static final String CACHE_FILE_PREFIX = "import_tmp_";
     private String selExport = "";
+    private int mStorage = INTERNAL_PATH;
 
     private class CustomMediaScannerConnectionClient implements MediaScannerConnectionClient {
         final MediaScannerConnection mConnection;
@@ -147,13 +153,16 @@ public class VCardService extends Service {
         super.onCreate();
         mBinder = new MyBinder();
         if (DEBUG) Log.d(LOG_TAG, "vCard Service is being created.");
-        initExporterParams();
         Notification notification = new Notification();
         startForeground(NOTIFICATION_ID, notification);
     }
 
     private void initExporterParams() {
-        mTargetDirectory = Environment.getExternalStorageDirectory();
+        if (mStorage == EXTERNAL_PATH) {
+            mTargetDirectory = new File(MoreContactUtils.getSDPath(this));
+        } else {
+            mTargetDirectory = Environment.getExternalStorageDirectory();
+          }
         mFileNamePrefix = getString(R.string.config_export_file_prefix);
         mFileNameSuffix = getString(R.string.config_export_file_suffix);
         mFileNameExtension = getString(R.string.config_export_file_extension);
@@ -182,9 +191,11 @@ public class VCardService extends Service {
         if (intent != null && intent.getExtras() != null) {
             mCallingActivity = intent.getExtras().getString(
                     VCardCommonArguments.ARG_CALLING_ACTIVITY);
+            mStorage = intent.getExtras().getInt(STORAGE_PATH);
         } else {
             mCallingActivity = null;
         }
+        initExporterParams();
         return START_STICKY;
     }
 
