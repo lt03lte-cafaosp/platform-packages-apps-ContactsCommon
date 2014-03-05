@@ -114,6 +114,7 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
     private ContactListItemView.PhotoPosition mPhotoPosition;
 
     private boolean mUseCallableUri;
+    private boolean mShowTwoButton;
 
     public PhoneNumberListAdapter(Context context) {
         super(context);
@@ -334,7 +335,9 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
     protected void bindView(View itemView, int partition, Cursor cursor, int position) {
         ContactListItemView view = (ContactListItemView)itemView;
 
-        view.setSecondaryActionViewContainer();
+        if (mShowTwoButton) {
+            view.setSecondaryActionViewContainer();
+        }
         setHighlight(view, cursor);
 
         // Look at elements before and after this position, checking if contact IDs are same.
@@ -475,6 +478,10 @@ public class PhoneNumberListAdapter extends ContactEntryListAdapter {
 
     public boolean usesCallableUri() {
         return mUseCallableUri;
+    }
+
+    public void setShowTwoButton(boolean showTwoButton) {
+        mShowTwoButton = showTwoButton;
     }
 
     /**
