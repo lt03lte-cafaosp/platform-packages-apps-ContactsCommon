@@ -21,10 +21,13 @@ import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.ContentProviderOperation;
 import android.content.Intent;
 import android.content.Loader;
+import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -33,6 +36,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.Settings;
 
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.AccountTypeManager;
@@ -173,10 +178,51 @@ public class AccountFilterActivity extends Activity implements AdapterView.OnIte
                     CustomContactListFilterActivity.class);
             startActivityForResult(intent, SUBACTIVITY_CUSTOMIZE_FILTER);
         } else {
+            updateAccountVisibility(filter);
             final Intent intent = new Intent();
             intent.putExtra(KEY_EXTRA_CONTACT_LIST_FILTER, filter);
             setResult(Activity.RESULT_OK, intent);
             finish();
+        }
+    }
+
+    private void updateAccountVisibility(ContactListFilter filter) {
+        final Uri settingsUri = Settings.CONTENT_URI;
+        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+        ContentProviderOperation.Builder mBuilder = null;
+        String accountSelection = Settings.ACCOUNT_NAME  +"=? and "
+            + Settings.ACCOUNT_TYPE + "=?";
+        String accountHiden =  Settings.ACCOUNT_NAME  +"!=? and "
+            + Settings.ACCOUNT_TYPE + "!=?";
+        final Cursor cursor = getContentResolver().query(settingsUri, new String[] {
+                    Settings.ACCOUNT_NAME, Settings.ACCOUNT_TYPE
+            }, null, null, null);
+        if (cursor != null ) {
+            if(filter.accountType == null && filter.accountName == null) {
+                while(cursor.moveToNext()) {
+                mBuilder =ContentProviderOperation.newUpdate(settingsUri);
+                mBuilder.withSelection(accountSelection,new String[] {cursor.getString(0),
+                    cursor.getString(1)});
+                mBuilder.withValue(Settings.UNGROUPED_VISIBLE,true);
+                ops.add(mBuilder.build());
+                }
+            } else {
+                mBuilder = ContentProviderOperation.newUpdate(settingsUri);
+                mBuilder.withSelection(accountSelection,new String[] {filter.accountName,
+                    filter.accountType});
+                mBuilder.withValue(Settings.UNGROUPED_VISIBLE,true);
+                ops.add(mBuilder.build());
+                mBuilder = ContentProviderOperation.newUpdate(settingsUri);
+                mBuilder.withSelection(accountHiden,new String[] {filter.accountName,
+                    filter.accountType});
+                mBuilder.withValue(Settings.UNGROUPED_VISIBLE,false);
+                ops.add(mBuilder.build());
+            }
+           try {
+                getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+            } catch (Exception e) {
+                Log.e("updateAccountVisibility", "apply batch by buffer error:" + e);
+            }
         }
     }
 
