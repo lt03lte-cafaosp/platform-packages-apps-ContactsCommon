@@ -86,7 +86,7 @@ public class MoreContactUtils {
     public static final int CONTACTSCOMMON_ICON = 2;
     public static final int DIALER_ICON = 3;
     public static final String[] MULTI_SIM_NAME = { "perferred_name_sub1",
-            "preferred_name_sub2" };
+            "perferred_name_sub2" };
 
     public static final String PREFERRED_SIM_ICON_INDEX = "preferred_sim_icon_index";
     public static final String[] IPCALL_PREFIX = { "ip_call_prefix_sub1",
