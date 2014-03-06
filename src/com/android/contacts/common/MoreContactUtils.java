@@ -33,8 +33,11 @@ import android.database.Cursor;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -83,7 +86,7 @@ public class MoreContactUtils {
     public static final int CONTACTSCOMMON_ICON = 2;
     public static final int DIALER_ICON = 3;
     public static final String[] MULTI_SIM_NAME = { "perferred_name_sub1",
-            "preferred_name_sub2" };
+            "perferred_name_sub2" };
 
     public static final String PREFERRED_SIM_ICON_INDEX = "preferred_sim_icon_index";
     public static final String[] IPCALL_PREFIX = { "ip_call_prefix_sub1",
@@ -995,6 +998,31 @@ public class MoreContactUtils {
         }
 
         return simFilter.toString();
+    }
+
+    public static boolean sdCardExist(Context context) {
+        boolean ret = false;
+        StorageManager mStorageManager = (StorageManager) context
+                .getSystemService(Context.STORAGE_SERVICE);
+        if (mStorageManager.getVolumeState(getSDPath(context)).equals(
+                android.os.Environment.MEDIA_MOUNTED)) {
+            ret = true;
+        }
+        return ret;
+    }
+
+    public static String getSDPath(Context context) {
+        String sd = null;
+        StorageManager mStorageManager = (StorageManager) context
+                .getSystemService(Context.STORAGE_SERVICE);
+        StorageVolume[] volumes = mStorageManager.getVolumeList();
+        for (int i = 0; i < volumes.length; i++) {
+            if (volumes[i].isRemovable() && volumes[i].allowMassStorage()
+                    && !volumes[i].isPrimary()) {
+                sd = volumes[i].getPath();
+            }
+        }
+        return sd;
     }
 
     /**
