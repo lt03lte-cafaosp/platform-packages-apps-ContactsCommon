@@ -64,7 +64,7 @@ public class PhoneNumberPickerFragment extends ContactEntryListFragment<ContactE
 
     private boolean mUseCallableUri;
 
-    private boolean mShowTwoButton;
+    private boolean mShowDialpad = false;
 
     private ContactListItemView.PhotoPosition mPhotoPosition =
             ContactListItemView.getDefaultPhotoPosition(false /* normal/non opposite */);
@@ -188,8 +188,7 @@ public class PhoneNumberPickerFragment extends ContactEntryListFragment<ContactE
     @Override
     protected void onItemClick(int position, long id) {
         final Uri phoneUri = getPhoneUri(position);
-
-        if (phoneUri != null) {
+        if (phoneUri != null && !mShowDialpad) {
             pickPhoneNumber(phoneUri);
         } else {
             final String number = getPhoneNumber(position);
@@ -239,8 +238,8 @@ public class PhoneNumberPickerFragment extends ContactEntryListFragment<ContactE
         return mUseCallableUri;
     }
 
-    public void setShowTwoButton(boolean showTwoButton) {
-        mShowTwoButton = showTwoButton;
+    public void setShowDialpad(boolean showDialpad) {
+        mShowDialpad = showDialpad;
     }
 
     @Override
@@ -248,7 +247,6 @@ public class PhoneNumberPickerFragment extends ContactEntryListFragment<ContactE
         PhoneNumberListAdapter adapter = new PhoneNumberListAdapter(getActivity());
         adapter.setDisplayPhotos(true);
         adapter.setUseCallableUri(mUseCallableUri);
-        adapter.setShowTwoButton(mShowTwoButton);
         return adapter;
     }
 
