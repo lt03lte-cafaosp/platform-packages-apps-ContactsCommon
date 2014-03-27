@@ -38,6 +38,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.OpenableColumns;
+import android.provider.Telephony.Mms.Part;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -324,18 +325,24 @@ public class ImportVCardActivity extends Activity {
 
                         String displayName = null;
                         Cursor cursor = null;
+                        String projection = null;
                         // Try to get a display name from the given Uri. If it fails, we just
                         // pick up the last part of the Uri.
+                        if (sourceUri.getAuthority().startsWith("mms")) {
+                            // to deal with the vcard received from mms.
+                            projection = Part.NAME;
+                        } else {
+                            projection = OpenableColumns.DISPLAY_NAME;
+                        }
                         try {
-                            cursor = resolver.query(sourceUri,
-                                    new String[] { OpenableColumns.DISPLAY_NAME },
+                            cursor = resolver.query(sourceUri, new String[] { projection },
                                     null, null, null);
                             if (cursor != null && cursor.getCount() > 0 && cursor.moveToFirst()) {
                                 if (cursor.getCount() > 1) {
                                     Log.w(LOG_TAG, "Unexpected multiple rows: "
                                             + cursor.getCount());
                                 }
-                                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                                int index = cursor.getColumnIndex(projection);
                                 if (index >= 0) {
                                     displayName = cursor.getString(index);
                                 }
@@ -928,13 +935,13 @@ public class ImportVCardActivity extends Activity {
         boolean sdExist = MoreContactUtils.sdCardExist(this);
         boolean inExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
         if (sdExist && inExist) {
-            CharSequence[] storage_list = new CharSequence[2];
-            storage_list[VCardService.INTERNAL_PATH] = Environment.getExternalStorageDirectory()
-                    .getPath();
-            storage_list[VCardService.EXTERNAL_PATH] = MoreContactUtils.getSDPath(this);
+            CharSequence[] storageNames = new CharSequence[2];
+            storageNames[VCardService.INTERNAL_PATH] = getString(R.string.phone_storage);
+            storageNames[VCardService.EXTERNAL_PATH] = getString(R.string.sd_card);
+
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.select_path);
-            builder.setSingleChoiceItems(storage_list, -1, new DialogInterface.OnClickListener() {
+            builder.setSingleChoiceItems(storageNames, -1, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     Log.d(LOG_TAG, "onClicked Dialog on which = " + which);
@@ -943,14 +950,14 @@ public class ImportVCardActivity extends Activity {
             });
 
             AlertDialog dialog = builder.create();
-            dialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.ok),
+            dialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(android.R.string.ok),
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             doScanExternalStorageAndImportVCard();
                         }
                     });
-            dialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel),
+            dialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(android.R.string.cancel),
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
