@@ -34,6 +34,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.SystemProperties;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.storage.StorageManager;
@@ -998,6 +999,16 @@ public class MoreContactUtils {
         }
 
         return simFilter.toString();
+    }
+
+    public static boolean isAPMOnAndSIMPowerDown(Context context) {
+        if (context == null) {
+            return false;
+        }
+        boolean isAirPlaneMode = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.AIRPLANE_MODE_ON, 0) == 1;
+        boolean isSIMPowerDown = SystemProperties.getInt("persist.radio.apm_sim_not_pwdn", 0) == 0;
+        return isAirPlaneMode && isSIMPowerDown;
     }
 
     public static boolean sdCardExist(Context context) {
