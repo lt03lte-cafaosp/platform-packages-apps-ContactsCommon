@@ -34,6 +34,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.SystemProperties;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.storage.StorageManager;
@@ -784,11 +785,13 @@ public class MoreContactUtils {
     /**
      * Check one SIM card is enabled
      */
-    public static boolean isMultiSimEnable(int slotId) {
+    public static boolean isMultiSimEnable(Context context, int slotId) {
         MSimTelephonyManager mSimTelManager = getMSimTelephonyManager();
         if (mSimTelManager.isMultiSimEnabled()) {
-            if (TelephonyManager.SIM_STATE_READY != mSimTelManager
-                    .getSimState(slotId)) {
+            if (Settings.System.getInt(context.getContentResolver(),
+                    Settings.System.AIRPLANE_MODE_ON, 0) != 0
+                    || TelephonyManager.SIM_STATE_READY != mSimTelManager
+                            .getSimState(slotId)) {
                 return false;
             }
             return true;
@@ -838,8 +841,8 @@ public class MoreContactUtils {
         if (divider_sub2 != null) {
             divider_sub2.setVisibility(View.GONE);
         }
-        final boolean sub1Enable = isMultiSimEnable(MSimConstants.SUB1);
-        final boolean sub2Enable = isMultiSimEnable(MSimConstants.SUB2);
+        final boolean sub1Enable = isMultiSimEnable(mContext, MSimConstants.SUB1);
+        final boolean sub2Enable = isMultiSimEnable(mContext, MSimConstants.SUB2);
         final boolean bothEnable = sub1Enable && sub2Enable;
         final boolean onlySub1Enable = sub1Enable && !sub2Enable;
         final boolean onlySub2Enable = !sub1Enable && sub2Enable;
@@ -998,6 +1001,16 @@ public class MoreContactUtils {
         }
 
         return simFilter.toString();
+    }
+
+    public static boolean isAPMOnAndSIMPowerDown(Context context) {
+        if (context == null) {
+            return false;
+        }
+        boolean isAirPlaneMode = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.AIRPLANE_MODE_ON, 0) == 1;
+        boolean isSIMPowerDown = SystemProperties.getInt("persist.radio.apm_sim_not_pwdn", 0) == 0;
+        return isAirPlaneMode && isSIMPowerDown;
     }
 
     public static boolean sdCardExist(Context context) {
