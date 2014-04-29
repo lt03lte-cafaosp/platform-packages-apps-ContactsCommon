@@ -23,6 +23,7 @@ import com.android.i18n.phonenumbers.PhoneNumberUtil;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
@@ -344,7 +345,7 @@ public class MoreContactUtils {
         return subscription;
     }
 
-    public static void insertToPhone(String[] values, final ContentResolver resolver,int sub) {
+    public static boolean insertToPhone(String[] values, final ContentResolver resolver,int sub) {
         Account account = getAcount(sub);
         final String name = values[NAME_POS];
         final String phoneNumber = values[NUMBER_POS];
@@ -353,6 +354,7 @@ public class MoreContactUtils {
 
         final String[] emailAddressArray;
         final String[] anrArray;
+        boolean success = true;
         if (!TextUtils.isEmpty(emailAddresses)) {
             emailAddressArray = emailAddresses.split(",");
         } else {
@@ -425,11 +427,21 @@ public class MoreContactUtils {
         }
 
         try {
-            resolver.applyBatch(ContactsContract.AUTHORITY, operationList);
+            ContentProviderResult[] results =
+                    resolver.applyBatch(ContactsContract.AUTHORITY, operationList);
+            for (ContentProviderResult result: results) {
+                if (result.uri == null) {
+                    success = false;
+                    break;
+                }
+            }
+            return success;
         } catch (RemoteException e) {
             Log.e(TAG, String.format("%s: %s", e.toString(), e.getMessage()));
+            return false;
         } catch (OperationApplicationException e) {
             Log.e(TAG, String.format("%s: %s", e.toString(), e.getMessage()));
+            return false;
         }
     }
 
@@ -1073,8 +1085,10 @@ public class MoreContactUtils {
             return null;
         }
         String name = "";
-        name = Settings.System.getString(context.getContentResolver(),
-                MULTI_SIM_NAME[subscription]);
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+            name = Settings.System.getString(context.getContentResolver(),
+                    MULTI_SIM_NAME[subscription]);
+        }
         if (TextUtils.isEmpty(name)) {
             name = getSimAccountName(subscription);
         }
