@@ -628,16 +628,19 @@ class AccountTypeManagerImpl extends AccountTypeManager
     }
 
     private boolean isSimAccountInvalid(Account account) {
-        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-            if (account.name.equals(SimContactsConstants.SIM_NAME))
-                return true;
-        } else {
-            if (!account.name.equals(SimContactsConstants.SIM_NAME)) {
-                return true;
+        if ((SimContactsConstants.ACCOUNT_TYPE_SIM).equals(account.type)) {
+            if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                if (account.name.equals(SimContactsConstants.SIM_NAME))
+                    return true;
+            } else {
+                if (!account.name.equals(SimContactsConstants.SIM_NAME)) {
+                    return true;
+                }
             }
         }
         return false;
     }
+
     private List<AccountWithDataSet> trimAccountByType(final List<AccountWithDataSet> list,
             String... trimAccountTypes) {
         List<AccountWithDataSet> tempList = Lists.newArrayList();
