@@ -762,6 +762,8 @@ a        ren't members of any other group. [CHAR LIMIT=25] -->
 
     <string name="tag_too_long">Error, Contact name is too long.</string>
 
+    <string name="sim_contacts_not_load">Error, SIM contacts have not been loaded completely.</string>
+
     <string name="export_cancelled">Export is canceled, <xliff:g id="insertCount">%s</xliff:g>items are exported</string>
 
     <string name="export_no_phone_or_email">Export failed, <xliff:g id="name">%s</xliff:g>has not phone number or
