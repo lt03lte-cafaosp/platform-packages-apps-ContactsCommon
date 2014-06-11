@@ -254,6 +254,7 @@
     <string name="sim_card_full">"发生错误，SIM卡已满。"</string>
     <string name="export_finished">"导出结束"</string>
     <string name="tag_too_long">"发生错误，联系人姓名过长。"</string>
+    <string name="sim_contacts_not_load">发生错误，SIM卡联系人未完全加载</string>
     <string name="export_cancelled">导出操作被取消，<xliff:g id="insertCount">%s</xliff:g>条成功导出</string>
     <string name="export_no_phone_or_email">导出失败, <xliff:g id="name">%s</xliff:g>没有电话号码或者邮箱地址</string>
     <string name="import_from_sim_select">"选择SIM卡进行导入"</string>

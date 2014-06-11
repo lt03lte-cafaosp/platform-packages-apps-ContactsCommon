@@ -97,6 +97,12 @@ public class ImportExportDialogFragment extends DialogFragment
     private static int mSelectedSim = SimContactsConstants.SUB_INVALID;
 
     public static final int SUBACTIVITY_EXPORT_CONTACTS = 100;
+
+    // This values must be consistent with ImportExportDialogFragment.SUBACTIVITY_EXPORT_CONTACTS.
+    // This values is set 101,That is avoid to conflict with other new subactivity.
+    public static final int SUBACTIVITY_SHARE_VISILBLE_CONTACTS = 101;
+    public static final int MAX_COUNT_ALLOW_SHARE_CONTACT = 2000;
+
     private final String[] LOOKUP_PROJECTION = new String[] {
             Contacts.LOOKUP_KEY
     };
@@ -143,6 +149,8 @@ public class ImportExportDialogFragment extends DialogFragment
     private static final int TOAST_EXPORT_CANCELED = 4;
     // only for not have phone number or email address
     private static final int TOAST_EXPORT_NO_PHONE_OR_EMAIL = 5;
+    // only for sim contacts haven't been loaded completely
+    private static final int TOAST_SIM_CARD_NOT_LOAD_COMPLETE = 6;
     private static final boolean DEBUG = true;
     private static boolean isMenuItemClicked = false;
     private SimContactsOperation mSimContactsOperation;
@@ -323,36 +331,14 @@ public class ImportExportDialogFragment extends DialogFragment
     }
 
     private void doShareVisibleContacts() {
-        // TODO move the query into a loader and do this in a background thread
-        final Cursor cursor = getActivity().getContentResolver().query(Contacts.CONTENT_URI,
-                LOOKUP_PROJECTION, Contacts.IN_VISIBLE_GROUP + "!=0", null, null);
-        if (cursor != null) {
-            try {
-                if (!cursor.moveToFirst()) {
-                    Toast.makeText(getActivity(), R.string.share_error, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                StringBuilder uriListBuilder = new StringBuilder();
-                int index = 0;
-                do {
-                    if (index != 0)
-                        uriListBuilder.append(':');
-                    uriListBuilder.append(cursor.getString(0));
-                    index++;
-                } while (cursor.moveToNext());
-                Uri uri = Uri.withAppendedPath(
-                        Contacts.CONTENT_MULTI_VCARD_URI,
-                        Uri.encode(uriListBuilder.toString()));
-
-                final Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType(Contacts.CONTENT_VCARD_TYPE);
-                intent.putExtra(Intent.EXTRA_STREAM, uri);
-                getActivity().startActivity(intent);
-            } finally {
-                cursor.close();
-            }
-        }
+        Intent intent = new Intent(ACTION_MULTI_PICK);
+        intent.setType(Contacts.CONTENT_TYPE);
+        ContactListFilter filter = new ContactListFilter(
+                ContactListFilter.FILTER_TYPE_CUSTOM, null, null, null, null);
+        intent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER,
+                filter);
+        intent.putExtra(IS_CONTACT,true);
+        getActivity().startActivityForResult(intent, SUBACTIVITY_SHARE_VISILBLE_CONTACTS);
     }
 
     /**
@@ -622,6 +608,7 @@ public class ImportExportDialogFragment extends DialogFragment
             Account account = new Account(accountName,accountType);
             boolean isAirplaneMode = false;
             boolean isSimCardFull = false;
+            boolean isSimCardLoaded = true;
             // GoogleSource.createMyContactsIfNotExist(account, getActivity());
             // in case export is stopped, record the count of inserted successfully
             int insertCount = 0;
@@ -662,7 +649,7 @@ public class ImportExportDialogFragment extends DialogFragment
             if (type == TYPE_SELECT) {
                 if (contactList != null) {
                     Iterator<String[]> iterator = contactList.iterator();
-                    while (iterator.hasNext() && !canceled && !isAirplaneMode) {
+                    while (iterator.hasNext() && !canceled && !isAirplaneMode && isSimCardLoaded) {
                         String[] contactInfo = iterator.next();
                         String name = "";
                         ArrayList<String> arrayNumber = new ArrayList<String>();
@@ -773,8 +760,14 @@ public class ImportExportDialogFragment extends DialogFragment
                                     freeSimCount--;
                                 }
                             } else {
-                                isSimCardFull = true;
-                                mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
+                                if (MoreContactUtils.getAdnCount(subscription) == 0) {
+                                    isSimCardLoaded = false;
+                                    mToastHandler.sendEmptyMessage(
+                                            TOAST_SIM_CARD_NOT_LOAD_COMPLETE);
+                                } else {
+                                    isSimCardFull = true;
+                                    mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
+                                }
                                 break;
                             }
                         }
@@ -872,6 +865,10 @@ public class ImportExportDialogFragment extends DialogFragment
                         String name = (String) msg.obj;
                         Toast.makeText(mPeople,
                                 mPeople.getString(R.string.export_no_phone_or_email, name),
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case TOAST_SIM_CARD_NOT_LOAD_COMPLETE:
+                        Toast.makeText(mPeople, R.string.sim_contacts_not_load,
                                 Toast.LENGTH_SHORT).show();
                         break;
                 }
