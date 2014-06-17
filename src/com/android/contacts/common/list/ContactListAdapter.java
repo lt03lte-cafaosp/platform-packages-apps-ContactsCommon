@@ -30,6 +30,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.android.contacts.common.ContactPhotoManager;
+import com.android.contacts.common.ContactPhotoManager.DefaultImageRequest;
 import com.android.contacts.common.R;
 
 /**
@@ -257,11 +259,18 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
         }
 
         if (photoId != 0) {
-            getPhotoLoader().loadThumbnail(view.getPhotoView(), photoId, account, false);
+            getPhotoLoader().loadThumbnail(view.getPhotoView(), photoId, account, false, null);
         } else {
             final String photoUriString = cursor.getString(ContactQuery.CONTACT_PHOTO_URI);
             final Uri photoUri = photoUriString == null ? null : Uri.parse(photoUriString);
-            getPhotoLoader().loadDirectoryPhoto(view.getPhotoView(), photoUri, account, false);
+            DefaultImageRequest request = null;
+            if (photoUri == null) {
+                String displayName = cursor.getString(ContactQuery.CONTACT_DISPLAY_NAME);
+                String lookupKey = cursor.getString(ContactQuery.CONTACT_LOOKUP_KEY);
+                request = new DefaultImageRequest(displayName, lookupKey);
+            }
+            getPhotoLoader().loadDirectoryPhoto(view.getPhotoView(), photoUri,
+                    account, false, request);
         }
     }
 

@@ -810,4 +810,8 @@ a        ren't members of any other group. [CHAR LIMIT=25] -->
     <string name="select_path">Select Path</string>
     <string name="sd_card">SD card</string>
     <string name="phone_storage">Phone storage</string>
+
+    <!-- Font family used when drawing letters for letter tile avatars.
+         Do not translate. -->
+    <string name="letter_tile_letter_font_family">sans-serif-thin</string>
 </resources>
