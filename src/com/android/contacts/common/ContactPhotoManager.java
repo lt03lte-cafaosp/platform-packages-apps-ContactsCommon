@@ -109,18 +109,18 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
      * draw a letter tile avatar based on the request parameters defined in the
      * {@link DefaultImageRequest}.
      */
-    public static Drawable getDefaultAvatarDrawableForContact(Resources resources, boolean hires,
+    public static Drawable getDefaultAvatarDrawableForContact(Context context, boolean hires,
             DefaultImageRequest defaultImageRequest, Account account) {
         if (defaultImageRequest == null) {
             if (sDefaultLetterAvatar == null) {
                 // Cache and return the letter tile drawable that is created by a null request,
                 // so that it doesn't have to be recreated every time it is requested again.
                 sDefaultLetterAvatar = LetterTileDefaultImageProvider.getDefaultImageForContact(
-                        resources, null, account);
+                        context, null, account);
             }
             return sDefaultLetterAvatar;
         }
-        return LetterTileDefaultImageProvider.getDefaultImageForContact(resources,
+        return LetterTileDefaultImageProvider.getDefaultImageForContact(context,
                 defaultImageRequest, account);
     }
 
@@ -279,14 +279,15 @@ public abstract class ContactPhotoManager implements ComponentCallbacks2 {
         @Override
         public void applyDefaultImage(ImageView view, Account account, int extent,
                 boolean darkTheme, DefaultImageRequest defaultImageRequest) {
-            final Drawable drawable = getDefaultImageForContact(view.getResources(),
+            final Drawable drawable = getDefaultImageForContact(view.getContext(),
                     defaultImageRequest, account);
             view.setImageDrawable(drawable);
         }
 
-        public static Drawable getDefaultImageForContact(Resources resources,
+        public static Drawable getDefaultImageForContact(Context context,
                 DefaultImageRequest defaultImageRequest, Account account) {
-            final LetterTileDrawable drawable = new LetterTileDrawable(resources);
+            final LetterTileDrawable drawable = new LetterTileDrawable(
+                    context, account);
             if (defaultImageRequest != null) {
                 // If the contact identifier is null or empty, fallback to the
                 // displayName. In that case, use {@code null} for the contact's

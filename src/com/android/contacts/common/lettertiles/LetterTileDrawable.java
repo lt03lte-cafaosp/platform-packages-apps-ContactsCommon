@@ -16,6 +16,8 @@
 
 package com.android.contacts.common.lettertiles;
 
+import android.accounts.Account;
+import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -28,8 +30,11 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.telephony.MSimTelephonyManager;
 import android.util.Log;
 
+import com.android.contacts.common.MoreContactUtils;
+import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.R;
 import com.android.contacts.common.util.BitmapUtil;
 
@@ -53,6 +58,9 @@ public class LetterTileDrawable extends Drawable {
     private static Bitmap DEFAULT_PERSON_AVATAR;
     private static Bitmap DEFAULT_BUSINESS_AVATAR;
     private static Bitmap DEFAULT_VOICEMAIL_AVATAR;
+    private static Bitmap DEFAULT_SIM_PERSON_AVATAR;
+    private static Bitmap[] DEFAULT_CUSTOMIZE_SIM_PERSON_AVATAR =
+            new Bitmap[MoreContactUtils.IC_SIM_PICTURE.length];
 
     /** Reusable components to avoid new allocations */
     private static final Paint sPaint = new Paint();
@@ -70,14 +78,20 @@ public class LetterTileDrawable extends Drawable {
     private int mContactType = TYPE_DEFAULT;
     private float mScale = 1.0f;
     private float mOffset = 0.0f;
+    private Account mAccount;
+    private Context mContext;
+    private Resources res;
 
     /** This should match the total number of colors defined in colors.xml for letter_tile_color */
     private static final int NUM_OF_TILE_COLORS = 8;
 
-    public LetterTileDrawable(final Resources res) {
+    public LetterTileDrawable(final Context context, final Account account) {
         mPaint = new Paint();
         mPaint.setFilterBitmap(true);
         mPaint.setDither(true);
+        mAccount = account;
+        mContext = context;
+        res = context.getResources();
 
         if (sColors == null) {
             sColors = res.obtainTypedArray(R.array.letter_tile_colors);
@@ -90,6 +104,13 @@ public class LetterTileDrawable extends Drawable {
                     R.drawable.ic_list_item_businessavatar);
             DEFAULT_VOICEMAIL_AVATAR = BitmapFactory.decodeResource(res,
                     R.drawable.ic_voicemail_avatar);
+            DEFAULT_SIM_PERSON_AVATAR = BitmapFactory.decodeResource(res,
+                    R.drawable.ic_contact_picture_sim);
+            for (int i = 0; i < MoreContactUtils.IC_SIM_PICTURE.length; i++) {
+                DEFAULT_CUSTOMIZE_SIM_PERSON_AVATAR[i] = BitmapFactory
+                        .decodeResource(res, MoreContactUtils.IC_SIM_PICTURE[i]);
+            }
+
             sPaint.setTypeface(Typeface.create(
                     res.getString(R.string.letter_tile_letter_font_family), Typeface.NORMAL));
             sPaint.setTextAlign(Align.CENTER);
@@ -138,7 +159,10 @@ public class LetterTileDrawable extends Drawable {
         canvas.drawRect(getBounds(), sPaint);
 
         // Draw letter/digit only if the first character is an english letter
-        if (mDisplayName != null && isEnglishLetter(mDisplayName.charAt(0))) {
+        if (mDisplayName != null
+                && isEnglishLetter(mDisplayName.charAt(0))
+                && (mAccount == null || (mAccount != null && !mAccount.type
+                        .equals(SimAccountType.ACCOUNT_TYPE)))) {
             // Draw letter or digit.
             sFirstChar[0] = Character.toUpperCase(mDisplayName.charAt(0));
 
@@ -157,9 +181,9 @@ public class LetterTileDrawable extends Drawable {
                     sPaint);
         } else {
             // Draw the default image if there is no letter/digit to be drawn
-            final Bitmap bitmap = getBitmapForContactType(mContactType);
-            drawBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(),
-                        canvas);
+            final Bitmap bitmap = getBitmapForContactType(mContactType,
+                    mAccount, mContext);
+            drawBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), canvas);
         }
     }
 
@@ -177,16 +201,30 @@ public class LetterTileDrawable extends Drawable {
         return sColors.getColor(color, sDefaultColor);
     }
 
-    private static Bitmap getBitmapForContactType(int contactType) {
+    private static Bitmap getBitmapForContactType(int contactType,
+            Account account, Context context) {
+        if (account != null
+                && account.type.equals(SimAccountType.ACCOUNT_TYPE)) {
+            if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+                final int sub = MoreContactUtils.getSubFromAccountName(account.name);
+                int index = MoreContactUtils.getCurrentSimIconIndex(context, sub);
+                if (index < 0) {
+                    return DEFAULT_PERSON_AVATAR;
+                }
+                return DEFAULT_CUSTOMIZE_SIM_PERSON_AVATAR[index];
+            } else {
+                return DEFAULT_SIM_PERSON_AVATAR;
+            }
+        }
         switch (contactType) {
-            case TYPE_PERSON:
-                return DEFAULT_PERSON_AVATAR;
-            case TYPE_BUSINESS:
-                return DEFAULT_BUSINESS_AVATAR;
-            case TYPE_VOICEMAIL:
-                return DEFAULT_VOICEMAIL_AVATAR;
-            default:
-                return DEFAULT_PERSON_AVATAR;
+        case TYPE_PERSON:
+            return DEFAULT_PERSON_AVATAR;
+        case TYPE_BUSINESS:
+            return DEFAULT_BUSINESS_AVATAR;
+        case TYPE_VOICEMAIL:
+            return DEFAULT_VOICEMAIL_AVATAR;
+        default:
+            return DEFAULT_PERSON_AVATAR;
         }
     }
 
