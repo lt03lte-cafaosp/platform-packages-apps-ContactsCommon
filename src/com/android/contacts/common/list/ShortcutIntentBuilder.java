@@ -292,7 +292,7 @@ public class ShortcutIntentBuilder {
             Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length, null);
             return new BitmapDrawable(mContext.getResources(), bitmap);
         } else {
-            return ContactPhotoManager.getDefaultAvatarDrawableForContact(mContext.getResources(),
+            return ContactPhotoManager.getDefaultAvatarDrawableForContact(mContext,
                     false, new DefaultImageRequest(displayName, lookupKey), account);
         }
     }
