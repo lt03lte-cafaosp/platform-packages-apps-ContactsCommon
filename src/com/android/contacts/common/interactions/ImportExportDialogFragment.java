@@ -127,7 +127,9 @@ public class ImportExportDialogFragment extends DialogFragment
     // This value needs to start at 7. See {@link PeopleActivity}.
     public static final int SUBACTIVITY_MULTI_PICK_CONTACT = 7;
 
-    private static final String ACTION_MULTI_PICK = Intent.ACTION_GET_CONTENT;
+    private static final String ACTION_MULTI_PICK = "com.android.contacts.action.MULTI_PICK";
+    //decide whether pick phone or contacts
+    private static final String IS_CONTACT = "is_contact";
 
     // multi-pick contacts which contains email address
     private static final String ACTION_MULTI_PICK_EMAIL =
@@ -262,6 +264,7 @@ public class ImportExportDialogFragment extends DialogFragment
                     case R.string.export_to_sdcard: {
                         dismissDialog = true;
                         Intent exportIntent = new Intent(ACTION_MULTI_PICK, Contacts.CONTENT_URI);
+                        exportIntent.putExtra(IS_CONTACT, true);
                         getActivity().startActivityForResult(exportIntent,
                                 SUBACTIVITY_EXPORT_CONTACTS);
                         break;
@@ -367,12 +370,13 @@ public class ImportExportDialogFragment extends DialogFragment
     }
 
     private void doShareVisibleContacts() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent(ACTION_MULTI_PICK);
         intent.setType(Contacts.CONTENT_TYPE);
         ContactListFilter filter = new ContactListFilter(
                 ContactListFilter.FILTER_TYPE_CUSTOM, null, null, null, null);
         intent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER,
                 filter);
+        intent.putExtra(IS_CONTACT, true);
         getActivity().startActivityForResult(intent, SUBACTIVITY_SHARE_VISILBLE_CONTACTS);
     }
 
@@ -494,6 +498,7 @@ public class ImportExportDialogFragment extends DialogFragment
                         ContactListFilter
                                 .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
                 pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
+                pickPhoneIntent.putExtra(IS_CONTACT, true);
                 mactiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
             }
         }
@@ -1139,6 +1144,7 @@ public class ImportExportDialogFragment extends DialogFragment
                     ContactListFilter
                             .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
             pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
+            pickPhoneIntent.putExtra(IS_CONTACT, true);
             mactiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
         }
     }
