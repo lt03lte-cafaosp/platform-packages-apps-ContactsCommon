@@ -89,9 +89,9 @@ public class ShortcutIntentBuilder {
     private static final int PHONE_NUMBER_COLUMN_INDEX = 2;
     private static final int PHONE_TYPE_COLUMN_INDEX = 3;
     private static final int PHONE_LABEL_COLUMN_INDEX = 4;
-    private static final int PHONE_LOOKUP_KEY_COLUMN_INDEX = 6;
-    private static final int PHONE_ACCOUNT_TYPE_COLUMN_INDEX = 7;
-    private static final int PHONE_ACCOUNT_NAME_COLUMN_INDEX = 8;
+    private static final int PHONE_LOOKUP_KEY_COLUMN_INDEX = 5;
+    private static final int PHONE_ACCOUNT_TYPE_COLUMN_INDEX = 6;
+    private static final int PHONE_ACCOUNT_NAME_COLUMN_INDEX = 7;
 
     private static final String[] PHOTO_COLUMNS = {
         Photo.PHOTO,
@@ -292,7 +292,7 @@ public class ShortcutIntentBuilder {
             Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length, null);
             return new BitmapDrawable(mContext.getResources(), bitmap);
         } else {
-            return ContactPhotoManager.getDefaultAvatarDrawableForContact(mContext.getResources(),
+            return ContactPhotoManager.getDefaultAvatarDrawableForContact(mContext,
                     false, new DefaultImageRequest(displayName, lookupKey), account);
         }
     }

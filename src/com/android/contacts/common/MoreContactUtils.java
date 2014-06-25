@@ -127,6 +127,14 @@ public class MoreContactUtils {
             R.drawable.ic_contact_picture_holo_light_w
     };
 
+    public final static int[] IC_SIM_PICTURE = {
+        R.drawable.ic_contact_picture_sim_1,
+        R.drawable.ic_contact_picture_sim_2,
+        R.drawable.ic_contact_picture_sim_c,
+        R.drawable.ic_contact_picture_sim_g,
+        R.drawable.ic_contact_picture_sim_w
+   };
+
     public final static int[] IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_DARKS = {
             R.drawable.ic_no_angle_contact_picture_180_holo_dark_1,
             R.drawable.ic_no_angle_contact_picture_180_holo_dark_2,
