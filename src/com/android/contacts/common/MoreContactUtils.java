@@ -130,9 +130,9 @@ public class MoreContactUtils {
     public final static int[] IC_SIM_PICTURE = {
         R.drawable.ic_contact_picture_sim_1,
         R.drawable.ic_contact_picture_sim_2,
-        R.drawable.ic_contact_picture_sim_c,
-        R.drawable.ic_contact_picture_sim_g,
-        R.drawable.ic_contact_picture_sim_w
+        R.drawable.ic_contact_picture_sim_personal,
+        R.drawable.ic_contact_picture_sim_business,
+        R.drawable.ic_contact_picture_sim_primary
    };
 
     public final static int[] IC_NO_ANGLE_CONTACT_PICTURE_180_HOLO_DARKS = {
