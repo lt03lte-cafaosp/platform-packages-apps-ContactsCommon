@@ -30,18 +30,18 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <array name="sim_icons_for_account">
         <item>@drawable/ic_sim_icon_1</item>
         <item>@drawable/ic_sim_icon_2</item>
-        <item>@drawable/ic_sim_icon_c</item>
-        <item>@drawable/ic_sim_icon_g</item>
-        <item>@drawable/ic_sim_icon_w</item>
+        <item>@drawable/ic_sim_icon_personal</item>
+        <item>@drawable/ic_sim_icon_business</item>
+        <item>@drawable/ic_sim_icon_primary</item>
         <item>@null</item>
     </array>
 
     <array name="sim_icons_for_dialer">
         <item>@drawable/ic_sim_icon_for_dialer_1</item>
         <item>@drawable/ic_sim_icon_for_dialer_2</item>
-        <item>@drawable/ic_sim_icon_for_dialer_c</item>
-        <item>@drawable/ic_sim_icon_for_dialer_g</item>
-        <item>@drawable/ic_sim_icon_for_dialer_w</item>
+        <item>@drawable/ic_sim_icon_for_dialer_personal</item>
+        <item>@drawable/ic_sim_icon_for_dialer_business</item>
+        <item>@drawable/ic_sim_icon_for_dialer_primary</item>
         <item>@null</item>
     </array>
 
