@@ -119,6 +119,7 @@ public class ImportExportDialogFragment extends DialogFragment
 
     //decide whether pick phone or contacts
     private static final String IS_CONTACT = "is_contact";
+    private static final String IS_EXPORT_CONTACT = "is_export_contact";
 
     // multi-pick contacts which contains email address
     private static final String ACTION_MULTI_PICK_EMAIL =
@@ -253,6 +254,7 @@ public class ImportExportDialogFragment extends DialogFragment
                         Intent exportIntent = new Intent(ACTION_MULTI_PICK,
                                 Contacts.CONTENT_URI);
                         exportIntent.putExtra(IS_CONTACT,true);
+                        exportIntent.putExtra(IS_EXPORT_CONTACT, true);
                         getActivity().startActivityForResult(exportIntent,
                                 SUBACTIVITY_EXPORT_CONTACTS);
                         break;
@@ -464,6 +466,7 @@ public class ImportExportDialogFragment extends DialogFragment
                                 .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
                 pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
                 pickPhoneIntent.putExtra(IS_CONTACT,true);
+                pickPhoneIntent.putExtra(IS_EXPORT_CONTACT, true);
                 mActiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
             }
         }
@@ -769,13 +772,15 @@ public class ImportExportDialogFragment extends DialogFragment
                                             && (MoreContactUtils.getSimFreeCount(mPeople,
                                                     subscription) == 0)) {
                                         isSimCardFull = true;
-                                        mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
+                                        mToastHandler.sendMessage(mToastHandler.obtainMessage(
+                                                TOAST_SIM_CARD_FULL, insertCount, 0));
                                         break;
                                     } else {
                                         isAirplaneMode = MoreContactUtils
                                                 .isAPMOnAndSIMPowerDown(mPeople);
                                         if (isAirplaneMode) {
-                                            mToastHandler.sendEmptyMessage(TOAST_EXPORT_FAILED);
+                                            mToastHandler.sendMessage(mToastHandler.obtainMessage(
+                                                    TOAST_EXPORT_FAILED, insertCount, 0));
                                             break;
                                         } else {
                                             continue;
@@ -797,7 +802,8 @@ public class ImportExportDialogFragment extends DialogFragment
                                             TOAST_SIM_CARD_NOT_LOAD_COMPLETE);
                                 } else {
                                     isSimCardFull = true;
-                                    mToastHandler.sendEmptyMessage(TOAST_SIM_CARD_FULL);
+                                    mToastHandler.sendMessage(mToastHandler.obtainMessage(
+                                            TOAST_SIM_CARD_FULL, insertCount, 0));
                                 }
                                 break;
                             }
@@ -865,9 +871,12 @@ public class ImportExportDialogFragment extends DialogFragment
         private Handler mToastHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
+                int exportCount = 0;
                 switch (msg.what) {
                     case TOAST_EXPORT_FAILED:
-                        Toast.makeText(mPeople, R.string.export_failed, Toast.LENGTH_SHORT).show();
+                        exportCount = msg.arg1;
+                        Toast.makeText(mPeople, mPeople.getString(R.string.export_to_sim_failed,
+                                exportCount), Toast.LENGTH_SHORT).show();
                         break;
                     case TOAST_EXPORT_FINISHED:
                         Toast.makeText(mPeople, R.string.export_finished, Toast.LENGTH_SHORT)
@@ -876,7 +885,9 @@ public class ImportExportDialogFragment extends DialogFragment
 
                     // add toast handler when sim card is full
                     case TOAST_SIM_CARD_FULL:
-                        Toast.makeText(mPeople, R.string.sim_card_full, Toast.LENGTH_SHORT).show();
+                        exportCount = msg.arg1;
+                        Toast.makeText(mPeople, mPeople.getString(R.string.export_sim_card_full,
+                                exportCount), Toast.LENGTH_SHORT).show();
                         break;
 
                     //add the max count limit of Chinese code or not
@@ -886,7 +897,7 @@ public class ImportExportDialogFragment extends DialogFragment
 
                      // add toast handler when export is canceled
                     case TOAST_EXPORT_CANCELED:
-                        int exportCount = msg.arg1;
+                        exportCount = msg.arg1;
                         Toast.makeText(mPeople,mPeople.getString(R.string.export_cancelled,
                             String.valueOf(exportCount)), Toast.LENGTH_SHORT).show();
                         break;
@@ -1095,6 +1106,7 @@ public class ImportExportDialogFragment extends DialogFragment
                             .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
             pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
             pickPhoneIntent.putExtra(IS_CONTACT,true);
+            pickPhoneIntent.putExtra(IS_EXPORT_CONTACT, true);
             mActiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
         }
     }
