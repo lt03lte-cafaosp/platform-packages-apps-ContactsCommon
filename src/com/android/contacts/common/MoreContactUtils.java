@@ -87,6 +87,7 @@ public class MoreContactUtils {
     public static final int FRAMEWORK_ICON = 1;
     public static final int CONTACTSCOMMON_ICON = 2;
     public static final int DIALER_ICON = 3;
+    public static final int NoSimOnLTE = 10;
     public static final String[] MULTI_SIM_NAME = { "perferred_name_sub1",
             "perferred_name_sub2" };
 
@@ -351,6 +352,46 @@ public class MoreContactUtils {
             }
         }
         return subscription;
+    }
+
+    public static boolean isAnySimAviable(){
+        int SimState = TelephonyManager.SIM_STATE_UNKNOWN;
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()){
+            SimState = MSimTelephonyManager.getDefault().getSimState(MSimConstants.SUB1);
+            if (SimState == TelephonyManager.SIM_STATE_READY){
+                return true;
+            }
+            SimState = MSimTelephonyManager.getDefault().getSimState(MSimConstants.SUB2);
+            if (SimState == TelephonyManager.SIM_STATE_READY){
+                return true;
+            }
+        } else {
+            SimState = TelephonyManager.getDefault().getSimState();
+            if (SimState == TelephonyManager.SIM_STATE_READY){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static int getSubscriptionOnLTE(){
+        int NetWorkType = TelephonyManager.NETWORK_TYPE_LTE;
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()){
+            NetWorkType = MSimTelephonyManager.getDefault().getNetworkType(MSimConstants.SUB1);
+            if (NetWorkType == TelephonyManager.NETWORK_TYPE_LTE){
+                return MSimConstants.SUB1;
+            }
+            NetWorkType = MSimTelephonyManager.getDefault().getNetworkType(MSimConstants.SUB2);
+            if (NetWorkType == TelephonyManager.NETWORK_TYPE_LTE){
+                return MSimConstants.SUB2;
+            }
+        } else {
+            NetWorkType = TelephonyManager.getDefault().getNetworkType();
+            if (NetWorkType == TelephonyManager.NETWORK_TYPE_LTE){
+                return MSimConstants.SUB1;
+            }
+        }
+        return NoSimOnLTE;
     }
 
     public static boolean insertToPhone(String[] values, final ContentResolver resolver,int sub) {
