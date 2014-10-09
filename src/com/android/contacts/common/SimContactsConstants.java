@@ -59,6 +59,8 @@ public interface SimContactsConstants {
     public static final String RUIM = "RUIM";
     public static final String INTENT_EXPORT_COMPLETE =
         "com.android.sim.INTENT_EXPORT_COMPLETE";
+    public static final String ANR_SEP = "&";
+    public static final String EMAIL_SEP = ",";
     public static final int SUB_1 = MSimConstants.SUB1;
     public static final int SUB_2 = MSimConstants.SUB2;
     public static final int SUB_INVALID = -1;
