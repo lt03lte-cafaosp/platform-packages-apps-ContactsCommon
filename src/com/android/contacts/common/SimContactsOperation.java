@@ -93,7 +93,9 @@ public class SimContactsOperation {
         Uri uri = getContentUri(subscription);
         String number = values.getAsString(SimContactsConstants.STR_NUMBER);
         String anrs = values.getAsString(SimContactsConstants.STR_ANRS);
-        anrs = anrs.replaceAll("[^0123456789PWN\\,\\;\\*\\#\\+\\&]", "");
+        if(anrs!=null) {
+            anrs = anrs.replaceAll("[^0123456789PWN\\,\\;\\*\\#\\+\\&]", "");
+        }
         String emails = values.getAsString(SimContactsConstants.STR_EMAILS);
         values.put(SimContactsConstants.STR_NUMBER,PhoneNumberUtils.stripSeparators(number));
         values.put(SimContactsConstants.STR_ANRS,anrs);
@@ -112,8 +114,12 @@ public class SimContactsOperation {
         String newNumber = values.getAsString(SimContactsConstants.STR_NEW_NUMBER);
         String oldAnrs = values.getAsString(SimContactsConstants.STR_ANRS);
         String newAnrs = values.getAsString(SimContactsConstants.STR_NEW_ANRS);
-        newAnrs = newAnrs.replaceAll("[^0123456789PWN\\,\\;\\*\\#\\+\\&]", "");
-        oldAnrs = oldAnrs.replaceAll("[^0123456789PWN\\,\\;\\*\\#\\+\\&]", "");
+        if(newAnrs!=null) {
+            newAnrs = newAnrs.replaceAll("[^0123456789PWN\\,\\;\\*\\#\\+\\&]", "");
+        }
+        if(oldAnrs!=null) {
+            oldAnrs = oldAnrs.replaceAll("[^0123456789PWN\\,\\;\\*\\#\\+\\&]", "");
+        }
         values.put(SimContactsConstants.STR_NUMBER,PhoneNumberUtils.stripSeparators(oldNumber));
         values.put(SimContactsConstants.STR_NEW_NUMBER,PhoneNumberUtils.stripSeparators(newNumber));
         values.put(SimContactsConstants.STR_ANRS,oldAnrs);
