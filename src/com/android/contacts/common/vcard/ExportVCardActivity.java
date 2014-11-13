@@ -51,6 +51,9 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
     private static final boolean DEBUG = VCardService.DEBUG;
     private String selExport = "";
 
+    private int mSelectedStorage = VCardService.INTERNAL_PATH;
+    private static final int CHOOSE_STORAGE_PATH = 1000;
+
     /**
      * Handler used when some Message has come from {@link VCardService}.
      */
@@ -151,32 +154,32 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
 
-        // Check directory is available.
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+        boolean sdExist = MoreContactUtils.sdCardExist(this);
+        boolean inExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+        if (sdExist && inExist) {
+            showDialog(CHOOSE_STORAGE_PATH);
+            return;
+        } else if (inExist) {
+            mSelectedStorage = VCardService.INTERNAL_PATH;
+        } else if (sdExist) {
+            mSelectedStorage = VCardService.EXTERNAL_PATH;
+        } else {
+            mSelectedStorage = VCardService.INVALID_PATH;
             Log.w(LOG_TAG, "External storage is in state " + Environment.getExternalStorageState() +
                     ". Cancelling export");
             showDialog(R.id.dialog_sdcard_not_found);
             return;
         }
 
-        final File targetDirectory = Environment.getExternalStorageDirectory();
-        if (!(targetDirectory.exists() &&
-                targetDirectory.isDirectory() &&
-                targetDirectory.canRead()) &&
-                !targetDirectory.mkdirs()) {
-            showDialog(R.id.dialog_sdcard_not_found);
-            return;
-        }
+        startAndBindService();
+    }
 
+    private void startAndBindService() {
         final String callingActivity = getIntent().getExtras()
                 .getString(VCardCommonArguments.ARG_CALLING_ACTIVITY);
         Intent intent = new Intent(this, VCardService.class);
         intent.putExtra(VCardCommonArguments.ARG_CALLING_ACTIVITY, callingActivity);
-        if (MoreContactUtils.sdCardExist(this)) {
-            intent.putExtra(VCardService.STORAGE_PATH,VCardService.EXTERNAL_PATH);
-        } else {
-            intent.putExtra(VCardService.STORAGE_PATH,VCardService.INTERNAL_PATH);
-        }
+        intent.putExtra(VCardService.STORAGE_PATH, mSelectedStorage);
 
         if (startService(intent) == null) {
             Log.e(LOG_TAG, "Failed to start vCard service");
@@ -259,6 +262,31 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
                         .setIconAttribute(android.R.attr.alertDialogIcon)
                         .setMessage(R.string.no_sdcard_message)
                         .setPositiveButton(android.R.string.ok, this).create();
+            }
+            case CHOOSE_STORAGE_PATH: {
+                CharSequence[] storageNames = new CharSequence[2];
+                storageNames[VCardService.INTERNAL_PATH] = getString(R.string.phone_storage);
+                storageNames[VCardService.EXTERNAL_PATH] = getString(R.string.sd_card);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.select_path);
+                builder.setSingleChoiceItems(storageNames, mSelectedStorage,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mSelectedStorage = which;
+                            }
+                        });
+                builder.setOnCancelListener(this);
+                builder.setPositiveButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startAndBindService();
+                            }
+                        });
+                builder.setNegativeButton(android.R.string.cancel, this);
+                return builder.create();
             }
         }
         return super.onCreateDialog(id, bundle);
