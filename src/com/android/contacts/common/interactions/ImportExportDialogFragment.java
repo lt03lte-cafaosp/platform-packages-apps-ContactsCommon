@@ -119,7 +119,6 @@ public class ImportExportDialogFragment extends DialogFragment
 
     //decide whether pick phone or contacts
     private static final String IS_CONTACT = "is_contact";
-    private static final String IS_EXPORT_CONTACT = "is_export_contact";
 
     // multi-pick contacts which contains email address
     private static final String ACTION_MULTI_PICK_EMAIL =
@@ -254,7 +253,6 @@ public class ImportExportDialogFragment extends DialogFragment
                         Intent exportIntent = new Intent(ACTION_MULTI_PICK,
                                 Contacts.CONTENT_URI);
                         exportIntent.putExtra(IS_CONTACT,true);
-                        exportIntent.putExtra(IS_EXPORT_CONTACT, true);
                         getActivity().startActivityForResult(exportIntent,
                                 SUBACTIVITY_EXPORT_CONTACTS);
                         break;
@@ -466,7 +464,6 @@ public class ImportExportDialogFragment extends DialogFragment
                                 .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
                 pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
                 pickPhoneIntent.putExtra(IS_CONTACT,true);
-                pickPhoneIntent.putExtra(IS_EXPORT_CONTACT, true);
                 mActiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
             }
         }
@@ -1106,7 +1103,6 @@ public class ImportExportDialogFragment extends DialogFragment
                             .createFilterWithType(ContactListFilter.FILTER_TYPE_ALL_ACCOUNTS));
             pickPhoneIntent.putExtra(EXT_NOT_SHOW_SIM_FLAG, true);
             pickPhoneIntent.putExtra(IS_CONTACT,true);
-            pickPhoneIntent.putExtra(IS_EXPORT_CONTACT, true);
             mActiv.startActivityForResult(pickPhoneIntent, SUBACTIVITY_MULTI_PICK_CONTACT);
         }
     }
