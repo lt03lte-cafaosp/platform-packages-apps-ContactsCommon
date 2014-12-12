@@ -430,7 +430,7 @@ public class RawContactDelta implements Parcelable {
         ValuesDelta nameValuesDelta = null;
         ValuesDelta emailValuesDelta = null;
 
-        if (names != null && names.size() > 0) {
+        if (getMimeEntriesCount(StructuredName.CONTENT_ITEM_TYPE, true) > 0) {
             nameValuesDelta = names.get(0);
             names.get(0).putNull(StructuredName.GIVEN_NAME);
             names.get(0).putNull(StructuredName.FAMILY_NAME);
