@@ -32,10 +32,13 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.View;
 
+import com.android.contacts.common.R;
+import com.android.contacts.common.list.ContactListAdapter.ContactQuery;
 import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.preference.ContactsPreferences;
 import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.SimContactsConstants;
+import com.android.contacts.common.util.ContactsCommonRcsUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -275,6 +278,27 @@ public class DefaultContactListAdapter extends ContactListAdapter {
         } else {
             view.setSnippet(null);
         }
+
+        if (ContactsCommonRcsUtil.getIsRcs()) {
+            Long contactId = cursor.getLong(ContactQuery.CONTACT_ID);
+            boolean isUserProfile = cursor
+                    .getInt(ContactQuery.CONTACT_IS_USER_PROFILE) == 1;
+            if (ContactsCommonRcsUtil.RcsCapabilityMapCache.containsKey(contactId)) {
+                ContactsCommonRcsUtil.RcsCapabilityMap.put(contactId,
+                        ContactsCommonRcsUtil.RcsCapabilityMapCache
+                                .get(contactId));
+            }
+            if (!isUserProfile
+                    && ContactsCommonRcsUtil.RcsCapabilityMap
+                            .containsKey(contactId)) {
+                view.setRCSCapability(
+                        mContext.getResources().getDrawable(R.drawable.and),
+                        ContactsCommonRcsUtil.RcsCapabilityMap.get(contactId));
+            } else {
+                view.setRCSCapability(null, false);
+            }
+        }
+
     }
 
     private boolean isCustomFilterForPhoneNumbersOnly() {

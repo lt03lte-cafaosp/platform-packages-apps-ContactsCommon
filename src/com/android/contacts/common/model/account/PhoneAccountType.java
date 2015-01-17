@@ -36,14 +36,19 @@ import android.os.SystemProperties;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.account.AccountType.DefinitionException;
+import com.android.contacts.common.model.dataitem.DataKind;
+import com.android.contacts.common.util.CommonDateUtils;
+import com.android.contacts.common.util.ContactsCommonRcsUtil;
 import com.google.android.collect.Lists;
 
+import com.suntek.mway.rcs.client.api.support.RcsSupportApi;
 
 public class PhoneAccountType extends BaseAccountType{
     private static final String TAG = "PhoneAccountType";
@@ -74,6 +79,9 @@ public class PhoneAccountType extends BaseAccountType{
             addDataKindWebsite(context);
             //addDataKindGroupMembership(context);
             addDataKindLocalGroups(context);
+            if (RcsSupportApi.isRcsServiceInstalled(context)) {
+                addDataKindEvent(context);
+            }
             if (context.getResources().getBoolean(
                     com.android.internal.R.bool.config_built_in_sip_phone)) {
                 addDataKindSipAddress(context);
