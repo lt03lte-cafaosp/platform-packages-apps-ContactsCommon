@@ -410,7 +410,7 @@ public class MoreContactUtils {
             emailAddressArray = null;
         }
         if (!TextUtils.isEmpty(anrs)) {
-            anrArray = anrs.split(",");
+            anrArray = anrs.split(SimContactsConstants.ANR_SEP);
         } else {
             anrArray = null;
         }
