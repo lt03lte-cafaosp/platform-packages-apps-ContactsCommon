@@ -273,17 +273,16 @@ public class DefaultContactListAdapter extends ContactListAdapter {
 
         if (ContactsCommonRcsUtil.getIsRcs()) {
             Long contactId = cursor.getLong(ContactQuery.CONTACT_ID);
-            boolean isUserProfile = cursor.getInt(ContactQuery.CONTACT_IS_USER_PROFILE) == 1;
-            if (ContactsCommonRcsUtil.RcsCapabilityMapCache.containsKey(contactId)
-                    && ContactsCommonRcsUtil.RcsCapabilityMapCache.get(contactId) != null
-                    && ContactsCommonRcsUtil.RcsCapabilityMapCache.get(contactId)) {
+            boolean isUserProfile = cursor
+                    .getInt(ContactQuery.CONTACT_IS_USER_PROFILE) == 1;
+            if (ContactsCommonRcsUtil.RcsCapabilityMapCache.containsKey(contactId)) {
                 ContactsCommonRcsUtil.RcsCapabilityMap.put(contactId,
                         ContactsCommonRcsUtil.RcsCapabilityMapCache
                         .get(contactId));
             }
-            if (!isUserProfile && ContactsCommonRcsUtil.RcsCapabilityMap.containsKey(contactId)
-                    && ContactsCommonRcsUtil.RcsCapabilityMapCache.get(contactId) != null
-                    && ContactsCommonRcsUtil.RcsCapabilityMapCache.get(contactId)) {
+            if (!isUserProfile
+                    && ContactsCommonRcsUtil.RcsCapabilityMap
+                    .containsKey(contactId)) {
                 view.setRCSCapability(mContext.getDrawable(R.drawable.rcs_capacity_icon),
                         ContactsCommonRcsUtil.RcsCapabilityMap.get(contactId));
             } else {
