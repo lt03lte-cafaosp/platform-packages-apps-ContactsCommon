@@ -209,9 +209,9 @@
     <string name="caching_vcard_message" msgid="6635485116655518520">"正在将 vCard 缓存到本地临时存储空间。实际导入操作即将开始。"</string>
     <string name="percentage" msgid="6699653515463625488">"<xliff:g id="PERCENTAGE">%s</xliff:g><xliff:g id="PERCENTSIGN">%%</xliff:g>"</string>
     <string name="vcard_import_failed" msgid="4105296876768072508">"无法导入 vCard。"</string>
-    <string name="import_failure_no_vcard_file" product="nosdcard" msgid="2066107150525521097">"未在存储设备中找到 vCard 文件。"</string>
-    <string name="import_failure_no_vcard_file" product="default" msgid="1748300468382501403">"未在SD卡上找到 vCard 文件。"</string>
-    <string name="nfc_vcard_file_name" msgid="305679412445157370">"通过NFC收到的联系人"</string>
+    <string name="import_failure_no_vcard_file" product="nosdcard" msgid="2066107150525521097">"未找到 vCard 文件。"</string>
+    <string name="import_failure_no_vcard_file" product="default" msgid="1748300468382501403">"未找到 vCard 文件。"</string>
+    <string name="nfc_vcard_file_name" msgid="305679412445157370">"通过 NFC 收到的联系人"</string>
     <string name="confirm_export_title" msgid="3240899428149018226">"要导出联系人吗？"</string>
     <string name="select_vcard_title" msgid="1536575036597557639">"选择 vCard 文件"</string>
     <string name="import_one_vcard_string" msgid="6199149175802496361">"导入一个 vCard 文件"</string>
