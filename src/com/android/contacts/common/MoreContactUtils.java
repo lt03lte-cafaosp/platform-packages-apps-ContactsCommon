@@ -77,7 +77,7 @@ public class MoreContactUtils {
     private static final int ANR_POS = 3;
     private static final String PHONEBOOK = "simphonebook";
     public static final String[] MULTI_SIM_NAME = { "perferred_name_sub1",
-            "perferred_name_sub2" };
+            "perferred_name_sub2", "perferred_name_sub3" };
 
     public static final String PREFERRED_SIM_ICON_INDEX = "preferred_sim_icon_index";
     public static final String[] IPCALL_PREFIX = { "ip_call_prefix_sub1",
