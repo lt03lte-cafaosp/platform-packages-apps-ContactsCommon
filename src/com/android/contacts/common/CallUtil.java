@@ -304,7 +304,7 @@ public class CallUtil {
         }
         String norNumber = PhoneNumberHelper.normalizeNumber(number);
         if (norNumber == null || "".equals(norNumber) ||
-                ((norNumber.startsWith("+") ? norNumber.length() > 8 : norNumber.length() > 7))
+                ((norNumber.startsWith("+") ? norNumber.length() < 8 : norNumber.length() < 7))
                 || number.contains("#") || number.contains("*")) {
             return false;
         } else {
