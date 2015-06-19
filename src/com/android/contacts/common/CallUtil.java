@@ -36,6 +36,11 @@ import java.util.List;
  */
 public class CallUtil {
 
+    /*Enable Video calling irrespective of video capabilities*/
+    private static final int ENABLE_VIDEO_CALLING = 1;
+    /*Disable Video calling irrespective of video capabilities*/
+    private static final int DISABLE_VIDEO_CALLING = 2;
+
     /**
      * Return an Intent for making a phone call. Scheme (e.g. tel, sip) will be determined
      * automatically.
@@ -222,13 +227,14 @@ public class CallUtil {
                 ((phoneAccount.getCapabilities() & capability) == capability);
     }
 
-    public static boolean isVideoEnabled(Context context) {
+    private static boolean hasVideoCapability(Context context) {
         TelecomManager telecommMgr = (TelecomManager)
                 context.getSystemService(Context.TELECOM_SERVICE);
         if (telecommMgr == null) {
             return false;
         }
-        List<PhoneAccountHandle> phoneAccountHandles = telecommMgr.getCallCapablePhoneAccounts();
+        List<PhoneAccountHandle> phoneAccountHandles =
+                telecommMgr.getCallCapablePhoneAccounts();
         for (PhoneAccountHandle handle : phoneAccountHandles) {
             final PhoneAccount phoneAccount = telecommMgr.getPhoneAccount(handle);
             if (hasCapability(phoneAccount, PhoneAccount.CAPABILITY_VIDEO_CALLING)) {
@@ -236,6 +242,24 @@ public class CallUtil {
             }
         }
         return false;
+    }
+
+    public static boolean isVideoEnabled(Context context) {
+
+        int enableVideoCall = getVideoCallingConfig(context);
+
+        if (enableVideoCall == ENABLE_VIDEO_CALLING) {
+            return true;
+        } else if(enableVideoCall == DISABLE_VIDEO_CALLING) {
+            return false;
+        } else {
+            return hasVideoCapability(context);
+        }
+    }
+
+    private static int getVideoCallingConfig(Context context) {
+        return context.getResources().getInteger(
+                R.integer.config_enable_video_calling);
     }
 
     /**
@@ -264,5 +288,27 @@ public class CallUtil {
         intent.putExtra("add_participant", true);
         intent.putExtra("current_participant_list", number);
         return intent;
+    }
+
+    /**
+     *  This method is used for check the phone number is valid for make video call.
+     *  if return true, number pattern check is passed and video call is allowed.
+     *  Otherwise the phone number didn't allow make video call.
+     * @param number
+     * @return weather the number formatter match the carriers requirement
+     */
+    public static boolean isVideoCallNumValid(Context context, String number){
+        if(!context.getResources().getBoolean(
+                com.android.internal.R.bool.config_regional_number_patterns_video_call)){
+            return true;
+        }
+        String norNumber = PhoneNumberHelper.normalizeNumber(number);
+        if (norNumber == null || "".equals(norNumber) ||
+                ((norNumber.startsWith("+") ? norNumber.length() > 8 : norNumber.length() > 7))
+                || number.contains("#") || number.contains("*")) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
