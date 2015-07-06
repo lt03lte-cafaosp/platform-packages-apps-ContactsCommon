@@ -40,6 +40,10 @@ public class CallUtil {
     private static final int ENABLE_VIDEO_CALLING = 1;
     /*Disable Video calling irrespective of video capabilities*/
     private static final int DISABLE_VIDEO_CALLING = 2;
+    /*Action to clear CSVT missed call count*/
+    public static final String INTENT_ACTION_CLEAR_MISSED_CSVTCALL =
+            "com.borqs.videocall.action.clearMissedVTCall";
+    public static final String CLEAR_MISSED_CSVTCALL_UPDATE_CALLLOG = "update_calllog";
 
     /**
      * Return an Intent for making a phone call. Scheme (e.g. tel, sip) will be determined
