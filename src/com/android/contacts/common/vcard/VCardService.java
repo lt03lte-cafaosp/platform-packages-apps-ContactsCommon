@@ -16,6 +16,8 @@
 package com.android.contacts.common.vcard;
 
 import android.app.Service;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.MediaScannerConnection;
@@ -317,6 +319,11 @@ public class VCardService extends Service {
                 }
             }
         } else {
+            // make sure notification is canceled
+            NotificationManager manager = (NotificationManager) getSystemService(Context
+                    .NOTIFICATION_SERVICE);
+            manager.cancel(NotificationImportExportListener.DEFAULT_NOTIFICATION_TAG,
+                    request.jobId);
             Log.w(LOG_TAG, String.format("Tried to remove unknown job (id: %d)", jobId));
         }
         stopServiceIfAppropriate();
