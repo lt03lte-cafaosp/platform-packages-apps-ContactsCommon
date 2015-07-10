@@ -25,12 +25,6 @@ package com.android.contacts.common.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import com.android.contacts.common.list.DefaultContactListAdapter;
-import com.suntek.mway.rcs.client.api.voip.impl.RichScreenApi;
-
-import android.provider.ContactsContract.CommonDataKinds.Phone;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -39,16 +33,18 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.text.TextUtils;
 import android.util.Log;
+import com.android.contacts.common.list.DefaultContactListAdapter;
+import com.suntek.mway.rcs.client.api.richscreen.RichScreenApi;
+import com.suntek.rcs.ui.common.RcsLog;
+
 
 public class ContactsCommonRcsUtil {
 
     public static final String TAG = "ContactsCommonRcsUtil";
-
-    public static final boolean DEBUG = false;
 
     public static final String RCS_CAPABILITY_CHANGED = "rcs_capability_changed";
 
@@ -68,17 +64,6 @@ public class ContactsCommonRcsUtil {
     public static final HashMap<Long, Boolean> RcsCapabilityMapCache = new HashMap<Long, Boolean>();
 
     private static boolean isRcs = false;
-
-    private static RichScreenApi mRichScreenApi = null;
-
-    // private static long rcsCapabilityUpdatedContactId = -1;
-
-    /*
-     * public static long getRcsCapabilityUpdatedId() { return
-     * rcsCapabilityUpdatedContactId; } public static void
-     * setRcsCapabilityUpdatedId(long id) { rcsCapabilityUpdatedContactId = id;
-     * }
-     */
 
     public static boolean getIsRcs() {
         return isRcs;
@@ -127,19 +112,6 @@ public class ContactsCommonRcsUtil {
                 }
             }
         }.execute();
-    }
-
-    public static void setRichScreenApi(RichScreenApi richScreenApi) {
-        mRichScreenApi = richScreenApi;
-    }
-
-    public static RichScreenApi getRichScreenApi(Context context) {
-        if (mRichScreenApi == null) {
-            mRichScreenApi = new RichScreenApi(null);
-            mRichScreenApi.init(context, null);
-            Log.d(TAG, "_______mRichScreenApi init______");
-        }
-        return mRichScreenApi;
     }
 
     private static boolean isWifiEnabled(Context context) {
@@ -195,11 +167,9 @@ public class ContactsCommonRcsUtil {
                 try {
                     for (String aPhoneNumber : phoneNumberList) {
                         if (!TextUtils.isEmpty(aPhoneNumber)) {
-                            if (DEBUG) {
-                                Log.d(TAG, "Phone Number is: " + aPhoneNumber);
-                                Log.d(TAG, "Calling downloadRichScrnObj for " + aPhoneNumber);
-                            }
-                            mRichScreenApi.downloadRichScrnObj(aPhoneNumber,
+                            RcsLog.d("Phone Number is: " + aPhoneNumber);
+                            RcsLog.d("Calling downloadRichScrnObj for " + aPhoneNumber);
+                            RichScreenApi.getInstance().downloadRichScrnObj(aPhoneNumber,
                                     UPDATE_ENHANCE_SCREEN_PHONE_EVENT);
                         }
                     }
