@@ -892,8 +892,13 @@ public class MoreContactUtils {
      */
     public static String getIPCallPrefix(Context context, int slot) {
         String ipCallPrefix = "";
-        ipCallPrefix = Settings.System.getString(context.getContentResolver(),
-                IPCALL_PREFIX[slot]);
+        if (!TelephonyManager.getDefault().isMultiSimEnabled()) {
+            ipCallPrefix = Settings.System.getString(context.getContentResolver(),
+                    "ipcall_prefix");
+        } else {
+            ipCallPrefix = Settings.System.getString(context.getContentResolver(),
+                    IPCALL_PREFIX[slot]);
+        }
         return ipCallPrefix;
     }
 
