@@ -215,6 +215,14 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
                             unbindAndFinish();
                         }
                     });
+            dialog.setOnCancelListener(
+                    new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            mSelectedStorage = VCardService.INVALID_PATH;
+                            unbindAndFinish();
+                        }
+                    });
             dialog.show();
         } else if (inExist) {
             mSelectedStorage = VCardService.INTERNAL_PATH;
