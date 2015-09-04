@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import android.widget.Toast;
+import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.ContactPhotoManager;
 import com.android.contacts.common.ContactPhotoManager.DefaultImageRequest;
 import com.android.contacts.common.R;
@@ -242,7 +243,7 @@ public abstract class ContactListAdapter extends ContactEntryListAdapter {
             if (cursor != null) {
                 if (cursor.moveToNext()) {
                     String phoneNumber = cursor.getString(0);
-                    Uri uri = Uri.parse("tel: " + phoneNumber);
+                    Uri uri = CallUtil.getCallUri(phoneNumber);
                     Intent intent = new Intent(Intent.ACTION_CALL, uri);
                     mContext.startActivity(intent);
                 }
