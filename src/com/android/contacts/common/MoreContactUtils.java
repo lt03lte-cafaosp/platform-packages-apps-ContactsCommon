@@ -38,6 +38,7 @@ import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -100,6 +101,13 @@ public class MoreContactUtils {
         R.drawable.ic_contact_picture_sim_business,
         R.drawable.ic_contact_picture_sim_primary
     };
+
+    public final static int[] IC_SIM_CALL_ICON = {
+        R.drawable.ic_multi_sim1,
+        R.drawable.ic_multi_sim2,
+        R.drawable.ic_multi_sim3,
+    };
+
     /**
      * Returns true if two data with mimetypes which represent values in contact entries are
      * considered equal for collapsing in the GUI. For caller-id, use
@@ -838,4 +846,12 @@ public class MoreContactUtils {
         int[] subId = SubscriptionManager.getSubId(slot);
         return new PhoneAccountHandle(serviceName, String.valueOf(subId[0]));
     }
+
+   public static Drawable getAccountIcon(Context c, int subId) {
+       int slotId = SubscriptionManager.getSlotId(subId);
+       if (SubscriptionManager.isValidSlotId(slotId) && slotId < IC_SIM_CALL_ICON.length)
+           return c.getResources().getDrawable(IC_SIM_CALL_ICON[slotId]);
+       return c.getResources().getDrawable(R.drawable.ic_multi_sim);
+   }
+
 }
