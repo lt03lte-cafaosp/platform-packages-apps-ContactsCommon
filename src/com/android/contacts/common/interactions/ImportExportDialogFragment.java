@@ -412,6 +412,10 @@ public class ImportExportDialogFragment extends DialogFragment
             showExportProgressDialog(mPeople);
         }
 
+        public ProgressDialog getProgressDialog() {
+            return mExportProgressDlg;
+        }
+
         @Override
         public void run() {
             isExportingToSIM = true;
