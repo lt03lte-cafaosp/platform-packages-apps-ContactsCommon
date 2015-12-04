@@ -21,6 +21,7 @@ import com.android.phone.common.PhoneConstants;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.SystemProperties;
 import android.telecom.PhoneAccount;
@@ -44,6 +45,7 @@ public class CallUtil {
     private static final int ENABLE_VIDEO_CALLING = 1;
     /*Disable Video calling irrespective of video capabilities*/
     private static final int DISABLE_VIDEO_CALLING = 2;
+    private static final int MAX_PHONE_NUM = 7;
 
     /**
      * Return an Intent for making a phone call. Scheme (e.g. tel, sip) will be determined
@@ -146,6 +148,29 @@ public class CallUtil {
         return false;
     }
 
+    /**
+     * Checks if the number is valid for videoCall
+     *
+     * @param number the number to call.
+     * @return true if the number is valid
+     *
+     * @hide
+     */
+    public static boolean isVideoCallNumValid(String number){
+        if (null == number) {
+            return false;
+        }
+        if (number.contains("#") || number.contains("+") ||
+                number.contains(",") || number.contains(";") ||
+                number.contains("*")) {
+            return false;
+        }
+        String norNumber = PhoneNumberHelper.normalizeNumber(number);
+        if (norNumber.length() < MAX_PHONE_NUM) {
+            return false;
+        }
+        return true;
+    }
 
     public static boolean isVideoEnabled(Context context) {
 
