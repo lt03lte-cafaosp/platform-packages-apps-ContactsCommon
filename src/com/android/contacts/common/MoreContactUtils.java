@@ -37,6 +37,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -602,6 +603,9 @@ public class MoreContactUtils {
             Log.e(TAG, String.format("%s: %s", e.toString(), e.getMessage()));
             return false;
         } catch (OperationApplicationException e) {
+            Log.e(TAG, String.format("%s: %s", e.toString(), e.getMessage()));
+            return false;
+        } catch (SQLiteException e) {
             Log.e(TAG, String.format("%s: %s", e.toString(), e.getMessage()));
             return false;
         }
