@@ -31,6 +31,7 @@ import android.provider.ContactsContract.RawContacts;
 import android.widget.Toast;
 
 import com.android.contacts.common.R;
+import com.android.contacts.common.util.ContactsCommonRcsUtil;
 import com.android.vcard.VCardEntry;
 
 import java.text.NumberFormat;
@@ -135,6 +136,11 @@ public class NotificationImportExportListener implements VCardImportExportListen
                 description, null, intent);
         mNotificationManager.notify(NotificationImportExportListener.DEFAULT_NOTIFICATION_TAG,
                 jobId, notification);
+        /* Begin add for RCS */
+        if (ContactsCommonRcsUtil.isRcsSupported()) {
+            ContactsCommonRcsUtil.updateAllEnhanceScreeen(mContext);
+        }
+        /* End add for RCS */
     }
 
     @Override

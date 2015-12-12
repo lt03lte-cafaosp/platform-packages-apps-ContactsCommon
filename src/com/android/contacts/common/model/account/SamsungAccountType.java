@@ -202,7 +202,7 @@ public class SamsungAccountType extends BaseAccountType {
         return kind;
     }
 
-    private DataKind addDataKindEvent(Context context) throws DefinitionException {
+    protected DataKind addDataKindEvent(Context context) throws DefinitionException {
         DataKind kind = addKind(new DataKind(Event.CONTENT_ITEM_TYPE,
                 R.string.eventLabelsGroup, 150, true));
         kind.actionHeader = new EventActionInflater();

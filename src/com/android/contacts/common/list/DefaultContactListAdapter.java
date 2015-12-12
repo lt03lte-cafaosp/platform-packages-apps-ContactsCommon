@@ -31,10 +31,13 @@ import android.provider.ContactsContract.SearchSnippets;
 import android.text.TextUtils;
 import android.view.View;
 
+import com.android.contacts.common.list.ContactListAdapter.ContactQuery;
 import com.android.contacts.common.model.account.SimAccountType;
 import com.android.contacts.common.preference.ContactsPreferences;
 import com.android.contacts.common.MoreContactUtils;
+import com.android.contacts.common.R;
 import com.android.contacts.common.SimContactsConstants;
+import com.android.contacts.common.util.ContactsCommonRcsUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -264,6 +267,26 @@ public class DefaultContactListAdapter extends ContactListAdapter {
         } else {
             view.setSnippet(null);
         }
+
+        /* Begin add for RCS */
+        if (ContactsCommonRcsUtil.isRcsSupported()) {
+            Long contactId = cursor.getLong(ContactQuery.CONTACT_ID);
+            boolean isUserProfile = cursor.getInt(ContactQuery.CONTACT_IS_USER_PROFILE) == 1;
+            if (ContactsCommonRcsUtil.RCS_CAPABILITY_MAP_CACHE.containsKey(contactId)
+                    && ContactsCommonRcsUtil.RCS_CAPABILITY_MAP_CACHE.get(contactId) != null
+                    && ContactsCommonRcsUtil.RCS_CAPABILITY_MAP_CACHE.get(contactId)) {
+                ContactsCommonRcsUtil.RCS_CAPABILITY_MAP.put(contactId,
+                        ContactsCommonRcsUtil.RCS_CAPABILITY_MAP_CACHE
+                        .get(contactId));
+            }
+            if (!isUserProfile && ContactsCommonRcsUtil.RCS_CAPABILITY_MAP.containsKey(contactId)
+                    && ContactsCommonRcsUtil.RCS_CAPABILITY_MAP_CACHE.get(contactId) != null
+                    && ContactsCommonRcsUtil.RCS_CAPABILITY_MAP_CACHE.get(contactId)) {
+                view.setRCSCapability(mContext.getDrawable(R.drawable.rcs_capacity_icon),
+                        ContactsCommonRcsUtil.RCS_CAPABILITY_MAP.get(contactId));
+            }
+        }
+        /* End add for RCS */
     }
 
     private boolean isCustomFilterForPhoneNumbersOnly() {
