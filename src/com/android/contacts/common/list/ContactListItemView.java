@@ -51,6 +51,7 @@ import com.android.contacts.common.ContactPresenceIconUtil;
 import com.android.contacts.common.ContactStatusUtil;
 import com.android.contacts.common.R;
 import com.android.contacts.common.format.TextHighlighter;
+import com.android.contacts.common.util.ContactsCommonRcsUtil;
 import com.android.contacts.common.util.ContactDisplayUtils;
 import com.android.contacts.common.util.SearchUtil;
 import com.android.contacts.common.util.ViewUtil;
@@ -227,6 +228,11 @@ public class ContactListItemView extends ViewGroup
     /** A helper used to highlight a prefix in a text field. */
     private final TextHighlighter mTextHighlighter;
     private CharSequence mUnknownNameText;
+
+    /* Begin add for RCS */
+    private int mRcsCapabilityViewHeight;
+    private ImageView mRCSCapabilityIcon;
+    /* End add for RCS */
 
     public ContactListItemView(Context context) {
         super(context);
@@ -432,6 +438,16 @@ public class ContactListItemView extends ViewGroup
                     MeasureSpec.makeMeasureSpec(mPresenceIconSize, MeasureSpec.EXACTLY));
             mStatusTextViewHeight = mPresenceIcon.getMeasuredHeight();
         }
+
+        /* Begin add for RCS */
+        if (isVisible(mRCSCapabilityIcon)) {
+            int rcsIconSize = ContactsCommonRcsUtil.dip2px(getContext(), 16);
+            mRCSCapabilityIcon.measure(MeasureSpec.makeMeasureSpec(rcsIconSize,
+                    MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
+                            rcsIconSize, MeasureSpec.EXACTLY));
+            mRcsCapabilityViewHeight = mRCSCapabilityIcon.getMeasuredHeight();
+        }
+        /* End add for RCS */
 
         if (isVisible(mStatusView)) {
             // Presence and status are in a same row, so status will be affected by icon size.
@@ -680,6 +696,16 @@ public class ContactListItemView extends ViewGroup
                     rightBound,
                     textTopBound + mSnippetTextViewHeight);
         }
+
+        /* Begin add for RCS */
+        if (isVisible(mRCSCapabilityIcon)) {
+            int iconWidth = mRCSCapabilityIcon.getMeasuredWidth();
+            int rcsTop = (bottom - top - mRcsCapabilityViewHeight) / 2;
+            int rcsBottom = rcsTop + mRcsCapabilityViewHeight;
+            mRCSCapabilityIcon.layout(rightBound - iconWidth, rcsTop,
+            rightBound, rcsBottom);
+        }
+        /* End add for RCS */
     }
 
     @Override
@@ -1529,4 +1555,22 @@ public class ContactListItemView extends ViewGroup
         return localX >= mLeftOffset && localX < mRightOffset
                 && localY >= 0 && localY < (getBottom() - getTop());
     }
+
+    /* Begin add for RCS */
+    public void setRCSCapability(Drawable icon, boolean isRcsUser) {
+        if (icon != null && isRcsUser) {
+            if (mRCSCapabilityIcon == null) {
+                mRCSCapabilityIcon = new ImageView(getContext());
+                addView(mRCSCapabilityIcon);
+                mRCSCapabilityIcon.setImageDrawable(icon);
+                mRCSCapabilityIcon.setScaleType(ScaleType.CENTER);
+            }
+            mRCSCapabilityIcon.setVisibility(View.VISIBLE);
+        } else {
+            if (mRCSCapabilityIcon != null) {
+                mRCSCapabilityIcon.setVisibility(View.GONE);
+            }
+        }
+    }
+    /* End add for RCS */
 }

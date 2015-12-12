@@ -113,6 +113,8 @@ public abstract class BaseAccountType extends AccountType {
         static final int GROUP_MEMBERSHIP = 150;
         static final int WEBSITE = 160;
         static final int RELATIONSHIP = 999;
+        /* add for RCS */
+        static final int DATA_KINDEVENT = 150;
     }
 
     public BaseAccountType() {
@@ -1485,4 +1487,32 @@ public abstract class BaseAccountType extends AccountType {
             return null;
         }
     }
+
+    /* Begin add for RCS */
+    protected DataKind addDataKindEvent(Context context) throws DefinitionException {
+        DataKind kind = addKind(new DataKind(Event.CONTENT_ITEM_TYPE,
+                R.string.eventLabelsGroup, Weight.DATA_KINDEVENT, true));
+
+        kind.actionHeader = new SimpleInflater(R.string.eventLabelsGroup);
+        kind.actionBody = new SimpleInflater(Event.START_DATE);
+
+        kind.typeColumn = Event.TYPE;
+        kind.typeList = Lists.newArrayList();
+        kind.dateFormatWithoutYear = CommonDateUtils.NO_YEAR_DATE_FORMAT;
+        kind.dateFormatWithYear = CommonDateUtils.FULL_DATE_FORMAT;
+        kind.typeList.add(buildEventType(Event.TYPE_BIRTHDAY, true).setSpecificMax(1));
+        kind.typeList.add(buildEventType(Event.TYPE_ANNIVERSARY, false));
+        kind.typeList.add(buildEventType(Event.TYPE_OTHER, false));
+        kind.typeList.add(buildEventType(Event.TYPE_CUSTOM, false).setSecondary(true)
+                .setCustomColumn(Event.LABEL));
+
+        kind.defaultValues = new ContentValues();
+        kind.defaultValues.put(Event.TYPE, Event.TYPE_BIRTHDAY);
+
+        kind.fieldList = Lists.newArrayList();
+        kind.fieldList.add(new EditField(Event.DATA, R.string.eventLabelsGroup, FLAGS_EVENT));
+
+        return kind;
+    }
+    /* End add for RCS */
 }
