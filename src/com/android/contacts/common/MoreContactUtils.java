@@ -69,6 +69,7 @@ import com.android.contacts.common.model.account.SimAccountType;
 import com.android.internal.telephony.uicc.AdnRecord;
 import com.android.internal.telephony.uicc.IccConstants;
 import com.android.internal.telephony.IIccPhoneBook;
+import com.android.internal.telephony.OperatorSimInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -788,6 +789,19 @@ public class MoreContactUtils {
         if (TextUtils.isEmpty(name)) {
             name = getSimAccountName(subscription);
         }
+        // Sim Icon Customisation feature change
+        OperatorSimInfo operatorSimInfo = new OperatorSimInfo(context);
+        boolean isCustomSimFeatureEnabled = operatorSimInfo.isOperatorFeatureEnabled();
+            if (isCustomSimFeatureEnabled) {
+                boolean isSimTypeOperator = operatorSimInfo.isSimTypeOperator(subscription);
+                if (isSimTypeOperator) {
+                    name = operatorSimInfo.getOperatorDisplayName();
+                } else {
+                    int subId = SubscriptionManager.getSubId(subscription)[0];
+                    name = TelephonyManager.from(context).
+                            getSimOperatorNameForSubscription(subId);
+                }
+            }
         return name;
     }
 
