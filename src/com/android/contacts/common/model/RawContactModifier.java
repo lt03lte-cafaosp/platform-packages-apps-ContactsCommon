@@ -434,6 +434,9 @@ public class RawContactModifier {
             if (entries == null) continue;
 
             for (ValuesDelta entry : entries) {
+                // Skip any values that have been deleted
+                if (entry.isDelete()) continue;
+
                 // Skip any values that haven't been touched
                 final boolean touched = entry.isInsert() || entry.isUpdate();
                 if (!touched) {
