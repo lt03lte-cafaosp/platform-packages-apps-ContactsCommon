@@ -25,6 +25,7 @@ import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 
 import com.android.contacts.common.util.PhoneNumberHelper;
 import com.android.phone.common.PhoneConstants;
@@ -269,8 +270,13 @@ public class CallUtil {
     /**
      * if true, conference dialer  is enabled.
      */
-    public static boolean isConferDialerEnabled() {
-        return SystemProperties.getBoolean("persist.radio.conferdialer", false);
+    public static boolean isConferDialerEnabled(Context context) {
+        if (SystemProperties.getBoolean("persist.radio.conferdialer", false)) {
+            TelephonyManager telephonyMgr = (TelephonyManager)
+                    context.getSystemService(Context.TELEPHONY_SERVICE);
+            return telephonyMgr.isImsRegistered();
+        }
+        return false;
     }
 
     /**
