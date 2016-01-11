@@ -31,5 +31,5 @@
     <!-- 0 - Enable/disable video calling based on local/peer video capabilities
          1 - Enable video calling regardless of local/peer video capabilities
          2 - Disable video calling regardless of local/peer video capabilities -->
-    <integer name="config_enable_video_calling">0</integer>
+    <integer name="config_enable_video_calling">1</integer>
 </resources>
