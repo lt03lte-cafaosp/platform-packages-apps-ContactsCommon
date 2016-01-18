@@ -19,9 +19,15 @@ package com.android.contacts.common;
 import com.android.contacts.common.util.PhoneNumberHelper;
 import com.android.phone.common.PhoneConstants;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
+import android.provider.Settings;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.os.SystemProperties;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
@@ -29,6 +35,17 @@ import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
 import android.text.TextUtils;
 import android.telephony.TelephonyManager;
+
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.RelativeLayout;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.android.contacts.common.R;
 
 import java.util.List;
 
@@ -41,9 +58,14 @@ import java.util.List;
 public class CallUtil {
 
     /*Enable Video calling irrespective of video capabilities*/
-    private static final int ENABLE_VIDEO_CALLING = 1;
+    public static final int ENABLE_VIDEO_CALLING = 1;
     /*Disable Video calling irrespective of video capabilities*/
-    private static final int DISABLE_VIDEO_CALLING = 2;
+    public static final int DISABLE_VIDEO_CALLING = 2;
+    private static final int MAX_PHONE_NUM = 7;
+
+    public static final String CONFIG_VIDEO_CALLING = "config_video_calling";
+    public static final String DIALOG_VIDEO_CALLING = "display_video_call_dialog";
+    private static AlertDialog mAlertDialog = null;
 
     /**
      * Return an Intent for making a phone call. Scheme (e.g. tel, sip) will be determined
@@ -146,17 +168,47 @@ public class CallUtil {
         return false;
     }
 
+    /**
+     * Checks if the number is valid for videoCall
+     *
+     * @param number the number to call.
+     * @return true if the number is valid
+     *
+     * @hide
+     */
+    public static boolean isVideoCallNumValid(String number){
+        if (null == number) {
+            return false;
+        }
+        if (number.contains("#") || number.contains("+") ||
+                number.contains(",") || number.contains(";") ||
+                number.contains("*")) {
+            return false;
+        }
+        String norNumber = PhoneNumberHelper.normalizeNumber(number);
+        if (norNumber.length() < MAX_PHONE_NUM) {
+            return false;
+        }
+        return true;
+    }
 
     public static boolean isVideoEnabled(Context context) {
 
         final int enableVideoCall = getVideoCallingConfig(context);
 
         if (enableVideoCall == ENABLE_VIDEO_CALLING) {
+            Settings.System.putInt(context.getContentResolver(),
+                    CONFIG_VIDEO_CALLING,ENABLE_VIDEO_CALLING);
             return true;
         } else if(enableVideoCall == DISABLE_VIDEO_CALLING) {
+            Settings.System.putInt(context.getContentResolver(),
+                    CONFIG_VIDEO_CALLING,DISABLE_VIDEO_CALLING);
             return false;
         } else {
-            return hasVideoCapability(context);
+            boolean hasVideoCap = hasVideoCapability(context);
+            Settings.System.putInt(context.getContentResolver(),
+                    CONFIG_VIDEO_CALLING,hasVideoCap?ENABLE_VIDEO_CALLING:DISABLE_VIDEO_CALLING);
+            return hasVideoCap;
         }
     }
 
@@ -221,4 +273,45 @@ public class CallUtil {
         intent.putExtra("current_participant_list", number);
         return intent;
     }
+
+    public static void createVideoCallingDialog(boolean isChecked ,final Context context) {
+        int value = Settings.System.getInt(context.getContentResolver(),
+                DIALOG_VIDEO_CALLING,DISABLE_VIDEO_CALLING);
+        if(mAlertDialog == null && value == DISABLE_VIDEO_CALLING){
+            View linearLayout = LayoutInflater.from(context).inflate(
+                    R.layout.hint_dialog_layout, null);
+            final CheckBox chkBox = (CheckBox) linearLayout
+                    .findViewById(R.id.videocall);
+            final Button btn = (Button) linearLayout
+                    .findViewById(R.id.btn_ok);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(mAlertDialog != null){
+                        mAlertDialog.dismiss();
+                        mAlertDialog = null;
+                    }
+                }
+            });
+
+            final TextView txtMessage = (TextView) linearLayout
+                    .findViewById(R.id.txt_message);
+            txtMessage.setText(
+                isChecked?R.string.video_call_message_on : R.string.video_call_message_off);
+
+            chkBox.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView,
+                        boolean isChecked) {
+                    Settings.System.putInt(context.getContentResolver(),
+                        DIALOG_VIDEO_CALLING,isChecked?ENABLE_VIDEO_CALLING:DISABLE_VIDEO_CALLING);
+                }
+            });
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setView(linearLayout);
+            builder.create().setCancelable(false);
+            mAlertDialog = builder.show();
+        }
+    }
+
 }
