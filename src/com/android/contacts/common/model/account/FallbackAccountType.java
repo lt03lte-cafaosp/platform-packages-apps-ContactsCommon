@@ -22,6 +22,7 @@ import android.util.Log;
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.dataitem.DataKind;
 import com.android.contacts.common.testing.NeededForTesting;
+import com.android.contacts.common.util.ContactsCommonRcsUtil;
 
 public class FallbackAccountType extends BaseAccountType {
     private static final String TAG = "FallbackAccountType";
@@ -50,7 +51,11 @@ public class FallbackAccountType extends BaseAccountType {
             addDataKindNote(context);
             addDataKindWebsite(context);
             addDataKindSipAddress(context);
-
+            /* Begin add for RCS */
+            if (ContactsCommonRcsUtil.isRcsSupported()) {
+                addDataKindEvent(context);
+            }
+            /* End add for RCS */
             mIsInitialized = true;
         } catch (DefinitionException e) {
             Log.e(TAG, "Problem building account type", e);
