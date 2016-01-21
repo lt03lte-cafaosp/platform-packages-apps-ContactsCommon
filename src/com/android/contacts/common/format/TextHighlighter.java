@@ -23,7 +23,10 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.widget.TextView;
 
+import com.android.contacts.common.util.SearchUtil;
 import com.google.common.base.Preconditions;
+
+import java.util.HashMap;
 
 /**
  * Highlights the text in a text field.
@@ -49,7 +52,7 @@ public class TextHighlighter {
      * @param prefix the prefix to look for
      */
     public void setPrefixText(TextView view, String text, String prefix) {
-        view.setText(applyPrefixHighlight(text, prefix));
+        view.setText(applyHighlight(text, prefix));
     }
 
     private CharacterStyle getStyleSpan() {
@@ -93,6 +96,41 @@ public class TextHighlighter {
             return result;
         } else {
             return text;
+        }
+    }
+
+    /**
+     * Returns a CharSequence which highlights the given prefix if found in the given text.
+     *
+     * @param text the text to which to apply the highlight
+     * @param prefix the prefix to look for
+     */
+    public CharSequence applyHighlight(CharSequence text, String prefix) {
+        //For number, highlight the substring.
+        if (text != null && SearchUtil.isPhoneNumber(text.toString())) {
+            if (prefix == null) {
+                return text;
+            }
+
+            // Skip non-word characters at the beginning of prefix.
+            int prefixStart = 0;
+            while (prefixStart < prefix.length() &&
+                    !Character.isLetterOrDigit(prefix.charAt(prefixStart))) {
+                prefixStart++;
+            }
+            HashMap<String, Integer> map = SearchUtil.numberContains(text.toString(), prefix);
+            if (map.get(SearchUtil.PREFIX_INDEX) != null
+                    && map.get(SearchUtil.SUFFIX_INDEX) != null) {
+                final SpannableString result = new SpannableString(text);
+                result.setSpan(mTextStyleSpan, map.get(SearchUtil.PREFIX_INDEX),
+                        map.get(SearchUtil.SUFFIX_INDEX), 0 /* flags */);
+                return result;
+            }
+            else {
+                return text;
+            }
+        } else {
+            return applyPrefixHighlight(text, prefix);
         }
     }
 }

@@ -16,12 +16,21 @@
 
 package com.android.contacts.common.util;
 
+import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
+
 import com.google.common.annotations.VisibleForTesting;
+
+import java.util.HashMap;
 
 /**
  * Methods related to search.
  */
 public class SearchUtil {
+
+    // the prefix and suffix of the needed highlight words.
+    public final static String PREFIX_INDEX = "pre_index";
+    public final static String SUFFIX_INDEX = "suf_index";
 
     public static class MatchedLine {
 
@@ -51,7 +60,18 @@ public class SearchUtil {
 
         // Snippet may contain multiple lines separated by "\n".
         // Locate the lines of the content that contain the substring.
-        final int index = SearchUtil.contains(contents, substring);
+        int index;
+        if (SearchUtil.isPhoneNumber(contents)) {
+            Integer i = SearchUtil.numberContains(contents, substring).get(PREFIX_INDEX);
+            if (i == null) {
+                index = -1;
+            } else {
+                index = i;
+            }
+
+        } else {
+            index = SearchUtil.contains(contents, substring);
+        }
         if (index != -1) {
             // Match found.  Find the corresponding line.
             int start = index - 1;
@@ -121,6 +141,61 @@ public class SearchUtil {
             }
         }
         return -1;
+    }
+
+    /**
+     *
+     * @param value the String to search.
+     * @param substring the substring to look for.
+     * @return return HashMap with the start and end index.
+     */
+    public static HashMap<String,Integer> numberContains(String value, String substring) {
+        substring = PhoneNumberUtils.normalizeNumber(substring);
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        if (value.length() < substring.length()) {
+            return map;
+        }
+
+        // i18n support
+        // Generate the code points for the substring once.
+        // There will be a maximum of substring.length code points.  But may be fewer.
+        // Since the array length is not an accurate size, we need to keep a separate variable.
+        final int[] substringCodePoints = new int[substring.length()];
+        int substringLength = 0;  // may not equal substring.length()!!
+        for (int i = 0; i < substring.length(); ) {
+            final int codePoint = Character.codePointAt(substring, i);
+            substringCodePoints[substringLength] = codePoint;
+            substringLength++;
+            i += Character.charCount(codePoint);
+        }
+
+        for (int i = 0; i < value.length(); i++) {
+            int valueCp = Character.toLowerCase(value.codePointAt(i));
+            while (!Character.isDigit(valueCp) && i < value.length()) {
+                i++;
+                valueCp = Character.toLowerCase(value.codePointAt(i));
+            }
+            int j;
+            int numMatch = 0;
+            for (j = i; j < value.length() && numMatch < substringLength; ++numMatch) {
+                valueCp = Character.toLowerCase(value.codePointAt(j));
+                int substringCp = substringCodePoints[numMatch];
+                while (!Character.isDigit(valueCp) && j < value.length()) {
+                    j++;
+                    valueCp = Character.toLowerCase(value.codePointAt(j));
+                }
+                if (valueCp != substringCp) {
+                    break;
+                }
+                j += Character.charCount(valueCp);
+            }
+            if (numMatch == substringLength) {
+                map.put(PREFIX_INDEX, i);
+                map.put(SUFFIX_INDEX, j);
+                return map;
+            }
+        }
+        return map;
     }
 
     /**
@@ -200,5 +275,32 @@ public class SearchUtil {
 
         // end is a letter or digit.
         return query.substring(start, end + 1);
+    }
+
+    public static boolean isPhoneNumber(String query) {
+        if (TextUtils.isEmpty(query)) {
+            return false;
+        }
+        // Assume a phone number if it has at least 1 digit.
+        return countPhoneNumberDigits(query) > 0;
+    }
+
+    private static int countPhoneNumberDigits(String query) {
+        int numDigits = 0;
+        int len = query.length();
+        for (int i = 0; i < len; i++) {
+            char c = query.charAt(i);
+            if (Character.isDigit(c)) {
+                numDigits ++;
+            } else if (c == '*' || c == '#' || c == 'N' || c == '.' || c == ';'
+                    || c == '-' || c == '(' || c == ')' || c == ' ') {
+                // Carry on.
+            } else if (c == '+' && numDigits == 0) {
+                // Plus sign before any digits is OK.
+            } else {
+                return 0;  // Not a phone number.
+            }
+        }
+        return numDigits;
     }
 }
