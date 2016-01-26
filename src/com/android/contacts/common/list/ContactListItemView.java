@@ -234,6 +234,9 @@ public class ContactListItemView extends ViewGroup
     private ImageView mRCSCapabilityIcon;
     /* End add for RCS */
 
+    //adjust height for large font
+    private int adjustHeight;
+
     public ContactListItemView(Context context) {
         super(context);
 
@@ -300,6 +303,9 @@ public class ContactListItemView extends ViewGroup
 
         mHeaderWidth =
                 getResources().getDimensionPixelSize(R.dimen.contact_list_section_header_width);
+
+        adjustHeight = getResources().getDimensionPixelSize(
+                R.dimen.contactListItemView_adjust_height);
 
         if (mActivatedBackgroundDrawable != null) {
             mActivatedBackgroundDrawable.setCallback(this);
@@ -474,6 +480,8 @@ public class ContactListItemView extends ViewGroup
 
         // Make sure height is at least the preferred height
         height = Math.max(height, preferredHeight);
+
+        height = height + adjustHeight;
 
         // Measure the header if it is visible.
         if (mHeaderTextView != null && mHeaderTextView.getVisibility() == VISIBLE) {

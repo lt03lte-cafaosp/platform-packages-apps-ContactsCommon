@@ -166,4 +166,6 @@
     <dimen name="video_calling_dialoglayout_checkbox_marginleft">10dp</dimen>
     <dimen name="video_calling_dialoglayout_checkbox_marginbottom">24dp</dimen>
     <dimen name="video_calling_dialoglayout_text_size">18sp</dimen>
+    <!-- adjust hight for huge font -->
+    <dimen name="contactListItemView_adjust_height">5dp</dimen>
 </resources>
