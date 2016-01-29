@@ -27,6 +27,7 @@ public class RequestImportVCardPermissionsActivity extends RequestPermissionsAct
     private static final String[] REQUIRED_PERMISSIONS = new String[] {
             permission.READ_CONTACTS,
             permission.READ_EXTERNAL_STORAGE,
+            permission.READ_SMS,
     };
 
     @Override
