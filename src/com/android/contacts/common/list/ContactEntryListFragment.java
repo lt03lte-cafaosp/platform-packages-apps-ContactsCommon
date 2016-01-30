@@ -150,10 +150,15 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
 
     private LoaderManager mLoaderManager;
 
+    //Add a flag to ignore reloadData when app launch.
+    private boolean mIgnoreSimStateChange;
     private BroadcastReceiver mSIMStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg0, Intent arg1) {
-            reloadData();
+            if (!mIgnoreSimStateChange) {
+                reloadData();
+            }
+            mIgnoreSimStateChange = false;
         }
     };
 
@@ -278,7 +283,7 @@ public abstract class ContactEntryListFragment<T extends ContactEntryListAdapter
         filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         if (mContext != null) {
-            mContext.registerReceiver(mSIMStateReceiver, filter);
+            mIgnoreSimStateChange = mContext.registerReceiver(mSIMStateReceiver, filter) != null;
         }
     }
 
