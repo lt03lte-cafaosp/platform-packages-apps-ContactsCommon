@@ -35,6 +35,7 @@ import android.widget.EditText;
 import com.android.contacts.common.MoreContactUtils;
 import com.android.contacts.common.R;
 import com.android.contacts.common.model.dataitem.DataKind;
+import com.android.internal.telephony.OperatorSimInfo;
 import com.android.internal.telephony.PhoneConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -349,11 +350,23 @@ public abstract class AccountType {
             final int slot = MoreContactUtils.getSubscription(accountType,
                     accountName);
             if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                //Sim Icon Customisation feature change
+                OperatorSimInfo operatorSimInfo = new OperatorSimInfo(context);
+                boolean isCustomSimFeatureEnabled = operatorSimInfo.
+                        isOperatorFeatureEnabled();
                 switch (slot) {
                     case PhoneConstants.SUB1:
+                        if (isCustomSimFeatureEnabled) {
+                            Drawable simIcon = getIconForVivoSim(slot, operatorSimInfo);
+                            return simIcon;
+                        }
                         return context.getResources().getDrawable(
                                 R.drawable.sim1_account);
                     case PhoneConstants.SUB2:
+                        if (isCustomSimFeatureEnabled) {
+                            Drawable simIcon = getIconForVivoSim(slot, operatorSimInfo);
+                            return simIcon;
+                        }
                         return context.getResources().getDrawable(
                                 R.drawable.sim2_account);
                     default:
@@ -366,6 +379,15 @@ public abstract class AccountType {
             }
         }
         return getDisplayIcon(context);
+    }
+
+    private Drawable getIconForVivoSim(int slot, OperatorSimInfo operatorSimInfo) {
+        boolean isSimTypeOperator = operatorSimInfo.isSimTypeOperator(slot);
+        if (isSimTypeOperator) {
+            return operatorSimInfo.getOperatorDrawable();
+        } else {
+            return operatorSimInfo.getGenericSimDrawable();
+        }
     }
 
     /**

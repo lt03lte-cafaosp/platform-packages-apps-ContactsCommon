@@ -51,6 +51,7 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.Settings;
+import android.preference.PreferenceManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -226,6 +227,10 @@ public class ImportExportDialogFragment extends DialogFragment
                         Intent exportIntent = new Intent(SimContactsConstants.ACTION_MULTI_PICK,
                                 Contacts.CONTENT_URI);
                         exportIntent.putExtra(SimContactsConstants.IS_CONTACT, true);
+                        ContactListFilter filter = ContactListFilter.restoreDefaultPreferences(
+                                PreferenceManager.getDefaultSharedPreferences(getActivity()));
+                        exportIntent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER,
+                                filter);
                         getActivity().startActivityForResult(exportIntent,
                                 SUBACTIVITY_EXPORT_CONTACTS);
                         break;
@@ -308,6 +313,9 @@ public class ImportExportDialogFragment extends DialogFragment
         Intent intent = new Intent(SimContactsConstants.ACTION_MULTI_PICK);
         intent.setType(Contacts.CONTENT_TYPE);
         intent.putExtra(SimContactsConstants.IS_CONTACT,true);
+        ContactListFilter filter = ContactListFilter.restoreDefaultPreferences(
+                PreferenceManager.getDefaultSharedPreferences(getActivity()));
+        intent.putExtra(AccountFilterActivity.KEY_EXTRA_CONTACT_LIST_FILTER, filter);
         getActivity().startActivityForResult(intent, SUBACTIVITY_SHARE_VISILBLE_CONTACTS);
     }
 

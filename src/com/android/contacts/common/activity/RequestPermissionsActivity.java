@@ -31,6 +31,7 @@ public class RequestPermissionsActivity extends RequestPermissionsActivityBase {
             // ImportExportDialogFragment. We could work around missing this permission with a bit
             // of work.
             permission.READ_CALL_LOG,
+            permission.READ_SMS,
     };
 
     @Override

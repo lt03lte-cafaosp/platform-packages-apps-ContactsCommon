@@ -218,9 +218,9 @@ public abstract class ContactEntryListAdapter extends IndexerListAdapter {
             if (partition instanceof DirectoryPartition) {
                 DirectoryPartition directoryPartition = (DirectoryPartition)partition;
                 if (!directoryPartition.isLoading()) {
-                    directoryPartition.setStatus(DirectoryPartition.STATUS_NOT_LOADED);
                     notify = true;
                 }
+                directoryPartition.setStatus(DirectoryPartition.STATUS_NOT_LOADED);
             }
         }
         if (notify) {
