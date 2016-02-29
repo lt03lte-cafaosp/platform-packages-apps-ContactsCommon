@@ -288,4 +288,5 @@
     <string name="send_and_call_button" msgid="7459507823002185202">"发送记事并拨打电话"</string>
     <string name="call_subject_limit" msgid="4746194916585506281">"<xliff:g id="COUNT">%1$s</xliff:g> / <xliff:g id="LIMIT">%2$s</xliff:g>"</string>
     <string name="call_subject_type_and_number" msgid="517676698821671164">"<xliff:g id="TYPE">%1$s</xliff:g> • <xliff:g id="NUMBER">%2$s</xliff:g>"</string>
+    <string name="sim_contact_export_failed">导入失败，联系人名字：<xliff:g id="name">1$%s</xliff:g>，号码：<xliff:g id="number">%2$s</xliff:g>，邮件地址：<xliff:g id="email">%3$s</xliff:g></string>
 </resources>
