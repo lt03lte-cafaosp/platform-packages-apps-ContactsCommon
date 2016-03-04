@@ -136,6 +136,10 @@ public class ImportExportDialogFragment extends DialogFragment
     private static final int TOAST_EXPORT_NO_PHONE_OR_EMAIL = 5;
     // only for sim contacts haven't been loaded completely
     private static final int TOAST_SIM_CARD_NOT_LOAD_COMPLETE = 6;
+
+    // only for export failed in exporting progress
+    private static final int TOAST_SIM_EXPORT_FAILED = 7;
+
     private SimContactsOperation mSimContactsOperation;
     private ArrayAdapter<AdapterEntry> mAdapter;
     private Activity mActivity;
@@ -620,6 +624,11 @@ public class ImportExportDialogFragment extends DialogFragment
                                                 emptyEmail += email.toString().split(
                                                         SimContactsConstants.EMAIL_SEP).length;
                                             }
+
+                                            mToastHandler.sendMessage(mToastHandler.obtainMessage(
+                                                    TOAST_SIM_EXPORT_FAILED,
+                                                    new String[]{name, num, email.toString()}));
+
                                             continue;
                                         }
                                     }
@@ -714,6 +723,17 @@ public class ImportExportDialogFragment extends DialogFragment
                     case TOAST_SIM_CARD_NOT_LOAD_COMPLETE:
                         Toast.makeText(mPeople, R.string.sim_contacts_not_load,
                                 Toast.LENGTH_SHORT).show();
+                        break;
+                    case TOAST_SIM_EXPORT_FAILED:
+                        String[] contactInfos = (String[]) msg.obj;
+                        if (contactInfos != null && contactInfos.length == 3) {
+                            String toastS = mPeople.getString(R.string.sim_contact_export_failed,
+                                    contactInfos[0] == null ? "" : contactInfos[0],
+                                    contactInfos[1] == null ? "" : contactInfos[1],
+                                    contactInfos[2] == null ? "" : contactInfos[2]);
+
+                            Toast.makeText(mPeople, toastS, Toast.LENGTH_SHORT).show();
+                        }
                         break;
                 }
             }
