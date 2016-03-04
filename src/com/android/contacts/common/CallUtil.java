@@ -245,7 +245,7 @@ public class CallUtil {
      * if true, conference dialer  is enabled.
      */
     public static boolean isConferDialerEnabled(Context context) {
-        if (SystemProperties.getBoolean("persist.radio.conferdialer", false)) {
+        if (context.getResources().getBoolean(R.bool.config_enable_conference_dialer)) {
             TelephonyManager telephonyMgr = (TelephonyManager)
                     context.getSystemService(Context.TELEPHONY_SERVICE);
             return telephonyMgr.isImsRegistered();
