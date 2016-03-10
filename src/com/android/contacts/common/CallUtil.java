@@ -34,6 +34,7 @@ import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
 import android.text.TextUtils;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 
 import android.widget.CheckBox;
@@ -95,7 +96,11 @@ public class CallUtil {
      * sanity check).
      */
     public static Intent getCallIntent(Uri uri) {
-        return new Intent(Intent.ACTION_CALL, uri);
+        if (PhoneNumberUtils.isEmergencyNumber(uri.getSchemeSpecificPart())) {
+            return new Intent(Intent.ACTION_CALL_EMERGENCY, uri);
+        } else {
+            return new Intent(Intent.ACTION_CALL, uri);
+        }
     }
 
     /**
@@ -112,7 +117,9 @@ public class CallUtil {
      * For more information about call origin, see comments in Phone package (PhoneApp).
      */
     public static Intent getCallIntent(Uri uri, PhoneAccountHandle accountHandle) {
-        final Intent intent = new Intent(Intent.ACTION_CALL, uri);
+        final boolean isEmergency = PhoneNumberUtils.isEmergencyNumber(uri.getSchemeSpecificPart());
+        final Intent intent = new Intent(isEmergency ? Intent.ACTION_CALL_EMERGENCY :
+                Intent.ACTION_CALL, uri);
         if (accountHandle != null) {
             intent.putExtra(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, accountHandle);
         }
