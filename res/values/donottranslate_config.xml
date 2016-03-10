@@ -79,4 +79,7 @@
 
     <!-- configuration for set operator show in dialpad or calllog -->
     <bool name="config_show_operator">false</bool>
+
+    <!-- flag indicate whether allow ip call -->
+    <bool name="config_enable_ipcall">true</bool>
 </resources>
