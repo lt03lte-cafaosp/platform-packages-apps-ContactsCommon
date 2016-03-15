@@ -105,9 +105,9 @@ public class NotificationImportExportListener implements VCardImportExportListen
                 mContext.getString(R.string.progress_notifier_message,
                         String.valueOf(currentCount),
                         totalCountString,
-                        entry.getDisplayName());
+                        request.displayName);
         final String description = mContext.getString(R.string.importing_vcard_description,
-                entry.getDisplayName());
+                request.displayName);
 
         final Notification notification = constructProgressNotification(
                 mContext.getApplicationContext(), VCardService.TYPE_IMPORT, description, tickerText,
