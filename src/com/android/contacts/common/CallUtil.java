@@ -158,7 +158,7 @@ public class CallUtil {
      * @return {@code true} if one of the call capable phone accounts supports video calling,
      *      {@code false} otherwise.
      */
-    private static boolean hasVideoCapability(Context context) {
+    public static boolean hasVideoCapability(Context context) {
         TelecomManager telecommMgr = (TelecomManager)
                 context.getSystemService(Context.TELECOM_SERVICE);
         if (telecommMgr == null) {
