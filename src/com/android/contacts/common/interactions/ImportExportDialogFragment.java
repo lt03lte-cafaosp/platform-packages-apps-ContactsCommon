@@ -152,6 +152,24 @@ public class ImportExportDialogFragment extends DialogFragment
             ArrayList<String[]> contactList, Activity mActivity) {
         if (mExportThread == null)
             mExportThread = new ExportToSimThread(subscription, contactList,  mActivity);
+        // Set exportingToSimThread's state.
+        setExportingToSimThread(mExportThread);
+        return mExportThread;
+    }
+
+    /**
+     * Use to set exportingToSimThread's state.
+     * @param exportingToSimThread
+     */
+    private void setExportingToSimThread(ExportToSimThread exportingToSimThread) {
+        mExportThread = exportingToSimThread;
+    }
+
+    /**
+     * Use to provide exportingToSimThread state.
+     * @return
+     */
+    public static ExportToSimThread getExportingToSimThread() {
         return mExportThread;
     }
 
@@ -675,6 +693,8 @@ public class ImportExportDialogFragment extends DialogFragment
                 }
             }
             isExportingToSIM = false;
+            // Set exportingToSimThread's state.
+            setExportingToSimThread(null);
             Intent intent = new Intent(SimContactsConstants.INTENT_EXPORT_COMPLETE);
             mPeople.sendBroadcast(intent);
         }
