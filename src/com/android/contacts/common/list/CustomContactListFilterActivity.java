@@ -148,7 +148,11 @@ public class CustomContactListFilterActivity extends Activity
                 if (account.dataSet != null) {
                     groupsUri.appendQueryParameter(Groups.DATA_SET, account.dataSet).build();
                 }
-                final Cursor cursor = resolver.query(groupsUri.build(), null, null, null, null);
+                // The groups that have been deleted cannot be filtered.
+                StringBuilder selection = new StringBuilder();
+                selection.append(Groups.DELETED + " = 0 ");
+                final Cursor cursor = resolver.query(groupsUri.build(), null,
+                        selection.toString(), null, null);
                 if (cursor == null) {
                     continue;
                 }
