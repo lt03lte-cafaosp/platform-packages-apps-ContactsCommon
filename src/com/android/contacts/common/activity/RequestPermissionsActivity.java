@@ -32,6 +32,7 @@ public class RequestPermissionsActivity extends RequestPermissionsActivityBase {
             // of work.
             permission.READ_CALL_LOG,
             permission.READ_SMS,
+            permission.READ_EXTERNAL_STORAGE
     };
 
     @Override
@@ -47,6 +48,7 @@ public class RequestPermissionsActivity extends RequestPermissionsActivityBase {
                 permission.READ_CALL_LOG, // Permission group phone
                 permission.READ_CALENDAR, // Calendar group
                 permission.READ_SMS, // SMS group
+                permission.READ_EXTERNAL_STORAGE
         };
     }
     public static boolean startPermissionActivity(Activity activity) {
