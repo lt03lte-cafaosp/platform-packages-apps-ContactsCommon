@@ -158,7 +158,7 @@ public class CallUtil {
      * @return {@code true} if one of the call capable phone accounts supports video calling,
      *      {@code false} otherwise.
      */
-    private static boolean hasVideoCapability(Context context) {
+    public static boolean hasVideoCapability(Context context) {
         TelecomManager telecommMgr = (TelecomManager)
                 context.getSystemService(Context.TELECOM_SERVICE);
         if (telecommMgr == null) {
@@ -252,7 +252,7 @@ public class CallUtil {
      * if true, conference dialer  is enabled.
      */
     public static boolean isConferDialerEnabled(Context context) {
-        if (SystemProperties.getBoolean("persist.radio.conferdialer", false)) {
+        if (context.getResources().getBoolean(R.bool.config_enable_conference_dialer)) {
             TelephonyManager telephonyMgr = (TelephonyManager)
                     context.getSystemService(Context.TELEPHONY_SERVICE);
             return telephonyMgr.isImsRegistered();
