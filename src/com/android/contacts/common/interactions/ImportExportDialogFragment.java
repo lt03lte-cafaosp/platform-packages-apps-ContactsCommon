@@ -409,6 +409,10 @@ public class ImportExportDialogFragment extends DialogFragment
         private ContentValues mValues = new ContentValues();
         Activity mPeople;
         private int freeSimCount = 0;
+        private ArrayList<ContentProviderOperation> operationList =
+                new ArrayList<ContentProviderOperation>();
+        private Account account;
+        final int BATCH_INSERT_NUMBER = 500;
 
         public ExportToSimThread(int subscription, ArrayList<String[]> contactList,
             Activity mActivity) {
@@ -417,6 +421,7 @@ public class ImportExportDialogFragment extends DialogFragment
             this.contactList = contactList;
             canceled = false;
             mPeople = mActivity;
+            account = MoreContactUtils.getAcount(subscription);
             showExportProgressDialog(mPeople);
         }
 
@@ -427,7 +432,6 @@ public class ImportExportDialogFragment extends DialogFragment
         @Override
         public void run() {
             isExportingToSIM = true;
-            Account account = MoreContactUtils.getAcount(subscription);
             boolean isAirplaneMode = false;
             boolean isSimCardFull = false;
             boolean isSimCardLoaded = true;
@@ -437,30 +441,14 @@ public class ImportExportDialogFragment extends DialogFragment
 
             mSimContactsOperation = new SimContactsOperation(mPeople);
             Cursor cr = null;
-            // call query first, otherwise insert will fail if this insert is called
-            // without any query before
-            try{
-                int[] subId = SubscriptionManager.getSubId(subscription);
-                if (subId != null
-                        && TelephonyManager.getDefault().isMultiSimEnabled()) {
-                    cr = mPeople.getContentResolver().query(
-                            Uri.parse(SimContactsConstants.SIM_SUB_URI
-                                    + subId[0]), null, null, null, null);
-                } else {
-                    cr = mPeople.getContentResolver().query(
-                            Uri.parse(SimContactsConstants.SIM_URI), null,
-                            null, null, null);
-                }
-            } catch (NullPointerException e) {
-                Log.e(TAG, "Exception:" + e);
-            } finally {
-                if (cr != null) {
-                    cr.close();
-                }
-            }
+
             freeSimCount = MoreContactUtils.getSimFreeCount(mPeople,subscription);
+            int AdnCount = MoreContactUtils.getAdnCount(subscription);
             boolean canSaveAnr = MoreContactUtils.canSaveAnr(subscription);
             boolean canSaveEmail = MoreContactUtils.canSaveEmail(subscription);
+            int emailCountInOneSimContact = MoreContactUtils
+                    .getOneSimEmailCount(subscription);
+            int phoneCountInOneSimContact = MoreContactUtils.getOneSimAnrCount(subscription) +1;
             int emptyAnr = MoreContactUtils.getSpareAnrCount(subscription);
             int emptyEmail = MoreContactUtils
                     .getSpareEmailCount(subscription);
@@ -473,7 +461,7 @@ public class ImportExportDialogFragment extends DialogFragment
                     while (iterator.hasNext() && !canceled && !isAirplaneMode && isSimCardLoaded) {
                         String[] contactInfo = iterator.next();
                         //contacts name has been existed in contactInfo,so no need query it again
-                        String name = contactInfo[4];
+                        String name = "";
                         ArrayList<String> arrayNumber = new ArrayList<String>();
                         ArrayList<String> arrayEmail = new ArrayList<String>();
 
@@ -486,10 +474,12 @@ public class ImportExportDialogFragment extends DialogFragment
                         };
                         Cursor c = mPeople.getContentResolver().query(dataUri, projection, null,
                                 null, null);
-
                         if (c != null && c.moveToFirst()) {
                             do {
                                 String mimeType = c.getString(1);
+                                if (StructuredName.CONTENT_ITEM_TYPE.equals(mimeType)) {
+                                    name = c.getString(2);
+                                }
                                 if (Phone.CONTENT_ITEM_TYPE.equals(mimeType)) {
                                     String number = c.getString(2);
                                     if (!TextUtils.isEmpty(number) && emptyNumber-- >0) {
@@ -517,16 +507,6 @@ public class ImportExportDialogFragment extends DialogFragment
                             continue;
                         }
 
-                        int phoneCountInOneSimContact = 1;
-                        int emailCountInOneSimContact = 0;
-                        if (canSaveAnr) {
-                            int num = MoreContactUtils.getOneSimAnrCount(subscription);
-                            phoneCountInOneSimContact = num > 1 ? (num + 1) : 2;
-                        }
-                        if (canSaveEmail) {
-                            emailCountInOneSimContact = MoreContactUtils
-                                    .getOneSimEmailCount(subscription);
-                        }
                         int nameCount = (name != null && !name.equals("")) ? 1 : 0;
                         int groupNumCount = (arrayNumber.size() % phoneCountInOneSimContact) != 0 ?
                                 (arrayNumber.size() / phoneCountInOneSimContact + 1)
@@ -581,18 +561,9 @@ public class ImportExportDialogFragment extends DialogFragment
                                 }
 
                                 result = MoreContactUtils.insertToCard(mPeople, name, num,
-                                        email.toString(), anrNum.toString(), subscription);
+                                        email.toString(), anrNum.toString(), subscription, false);
 
                                 if (null == result) {
-                                    // add toast handler when sim card is full
-                                    if ((MoreContactUtils.getAdnCount(subscription) > 0)
-                                            && (MoreContactUtils.getSimFreeCount(mPeople,
-                                                    subscription) == 0)) {
-                                        isSimCardFull = true;
-                                        mToastHandler.sendMessage(mToastHandler.obtainMessage(
-                                                TOAST_SIM_CARD_FULL, insertCount, 0));
-                                        break;
-                                    } else {
                                         isAirplaneMode = MoreContactUtils
                                                 .isAPMOnAndSIMPowerDown(mPeople);
                                         if (isAirplaneMode) {
@@ -622,7 +593,6 @@ public class ImportExportDialogFragment extends DialogFragment
                                             }
                                             continue;
                                         }
-                                    }
                                 } else {
                                     if (DEBUG) {
                                         Log.d(TAG, "Exported contact [" + name + ", "
@@ -631,9 +601,11 @@ public class ImportExportDialogFragment extends DialogFragment
                                     }
                                     insertCount++;
                                     freeSimCount--;
+                                    batchInsert(name, num, anrNum.toString(),
+                                            email.toString());
                                 }
                             } else {
-                                if (MoreContactUtils.getAdnCount(subscription) == 0) {
+                                if (AdnCount == 0) {
                                     isSimCardLoaded = false;
                                     mToastHandler.sendEmptyMessage(
                                             TOAST_SIM_CARD_NOT_LOAD_COMPLETE);
@@ -650,7 +622,21 @@ public class ImportExportDialogFragment extends DialogFragment
                             break;
                         }
                     }
+
+                if (operationList.size() > 0) {
+                    try {
+                        mPeople.getContentResolver().applyBatch(
+                                android.provider.ContactsContract.AUTHORITY,
+                                operationList);
+                    } catch (Exception e) {
+                        Log.e(TAG,
+                                String.format("%s: %s", e.toString(),
+                                        e.getMessage()));
+                    } finally {
+                        operationList.clear();
+                    }
                 }
+            }
             if (mExportProgressDlg != null) {
                 mExportProgressDlg.dismiss();
                 mExportProgressDlg = null;
@@ -668,6 +654,92 @@ public class ImportExportDialogFragment extends DialogFragment
             isExportingToSIM = false;
             Intent intent = new Intent(SimContactsConstants.INTENT_EXPORT_COMPLETE);
             mPeople.sendBroadcast(intent);
+        }
+
+        private void batchInsert(String name, String phoneNumber, String anrs,
+                String emailAddresses) {
+            final String[] emailAddressArray;
+            final String[] anrArray;
+            if (!TextUtils.isEmpty(emailAddresses)) {
+                emailAddressArray = emailAddresses.split(",");
+            } else {
+                emailAddressArray = null;
+            }
+            if (!TextUtils.isEmpty(anrs)) {
+                anrArray = anrs.split(SimContactsConstants.ANR_SEP);
+            } else {
+                anrArray = null;
+            }
+            Log.d(TAG, "insertToPhone: name= " + name + ", phoneNumber= " + phoneNumber
+                    + ", emails= " + emailAddresses + ", anrs= " + anrs + ", account= " + account);
+            ContentProviderOperation.Builder builder = ContentProviderOperation
+                    .newInsert(RawContacts.CONTENT_URI);
+            builder.withValue(RawContacts.AGGREGATION_MODE, RawContacts.AGGREGATION_MODE_DISABLED);
+
+            int ref = operationList.size();
+            if (account != null) {
+                builder.withValue(RawContacts.ACCOUNT_NAME, account.name);
+                builder.withValue(RawContacts.ACCOUNT_TYPE, account.type);
+            }
+            operationList.add(builder.build());
+            // do not allow empty value insert into database.
+            if (!TextUtils.isEmpty(name)) {
+                builder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+                builder.withValueBackReference(StructuredName.RAW_CONTACT_ID, ref);
+                builder.withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+                builder.withValue(StructuredName.DISPLAY_NAME, name);
+                operationList.add(builder.build());
+            }
+
+            if (!TextUtils.isEmpty(phoneNumber)) {
+                builder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+                builder.withValueBackReference(Phone.RAW_CONTACT_ID, ref);
+                builder.withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
+                builder.withValue(Phone.TYPE, Phone.TYPE_MOBILE);
+                builder.withValue(Phone.NUMBER, phoneNumber);
+                builder.withValue(Data.IS_PRIMARY, 1);
+                operationList.add(builder.build());
+            }
+
+            if (anrArray != null) {
+                for (String anr : anrArray) {
+                    if (!TextUtils.isEmpty(anr)) {
+                        builder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+                        builder.withValueBackReference(Phone.RAW_CONTACT_ID, ref);
+                        builder.withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
+                        builder.withValue(Phone.TYPE, Phone.TYPE_HOME);
+                        builder.withValue(Phone.NUMBER, anr);
+                        operationList.add(builder.build());
+                    }
+                }
+            }
+
+            if (emailAddressArray != null) {
+                for (String emailAddress : emailAddressArray) {
+                    if (!TextUtils.isEmpty(emailAddress)) {
+                        builder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+                        builder.withValueBackReference(Email.RAW_CONTACT_ID, ref);
+                        builder.withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE);
+                        builder.withValue(Email.TYPE, Email.TYPE_MOBILE);
+                        builder.withValue(Email.ADDRESS, emailAddress);
+                        operationList.add(builder.build());
+                    }
+                }
+            }
+
+            if (BATCH_INSERT_NUMBER - operationList.size() < 10) {
+                try {
+                    mPeople.getContentResolver().applyBatch(
+                            android.provider.ContactsContract.AUTHORITY,
+                            operationList);
+                } catch (Exception e) {
+                    Log.e(TAG,
+                            String.format("%s: %s", e.toString(),
+                                    e.getMessage()));
+                } finally {
+                    operationList.clear();
+                }
+            }
         }
 
         private Handler mToastHandler = new Handler() {

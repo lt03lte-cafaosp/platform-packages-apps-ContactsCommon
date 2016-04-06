@@ -612,8 +612,14 @@ public class MoreContactUtils {
         }
     }
 
+    public static Uri insertToCard(Context context, String name, String number,
+            String emails, String anrNumber, int subscription) {
+        return insertToCard(context, name, number, emails, anrNumber,
+                subscription, true);
+    }
+
     public static Uri insertToCard(Context context, String name, String number, String emails,
-            String anrNumber, int subscription) {
+            String anrNumber, int subscription, boolean insertToPhone) {
         // add the max count limit of Chinese code or not
         if (!TextUtils.isEmpty(name)) {
             final int maxLen = hasChinese(name) ? MAX_LENGTH_NAME_WITH_CHINESE_IN_SIM
@@ -645,12 +651,13 @@ public class MoreContactUtils {
         SimContactsOperation mSimContactsOperation = new SimContactsOperation(context);
         result = mSimContactsOperation.insert(mValues, subscription);
 
-        if (result != null) {
-            // we should import the contact to the sim account at the same time.
-            String[] value = new String[] {
-                    name, number, emails, anrNumber
-            };
-            insertToPhone(value, context.getContentResolver(),subscription);
+        if (result != null ) {
+            if (insertToPhone) {
+                // we should import the contact to the sim account at the same
+                // time.
+                String[] value = new String[] { name, number, emails, anrNumber };
+                insertToPhone(value, context.getContentResolver(), subscription);
+            }
         } else {
             Log.e(TAG, "export contact: [" + name + ", " + number + ", " + emails + "] to slot "
                     + subscription + " failed");
