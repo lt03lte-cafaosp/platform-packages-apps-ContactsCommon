@@ -187,7 +187,8 @@ public class CallUtil {
         if (null == number) {
             return false;
         }
-        if (number.contains("#") || number.contains("+") ||
+        //need make video with "+"
+        if (number.contains("#") || /* number.contains("+") || */
                 number.contains(",") || number.contains(";") ||
                 number.contains("*")) {
             return false;
