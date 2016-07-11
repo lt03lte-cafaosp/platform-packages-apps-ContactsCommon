@@ -48,6 +48,8 @@ import android.widget.TextView;
 
 import com.android.contacts.common.R;
 
+import android.telephony.SubscriptionManager;
+import android.telephony.SubscriptionInfo;
 import java.util.List;
 
 /**
@@ -253,12 +255,26 @@ public class CallUtil {
      * if true, conference dialer  is enabled.
      */
     public static boolean isConferDialerEnabled(Context context) {
-        if (context.getResources().getBoolean(R.bool.config_enable_conference_dialer)) {
-            TelephonyManager telephonyMgr = (TelephonyManager)
-                    context.getSystemService(Context.TELEPHONY_SERVICE);
-            return telephonyMgr.isImsRegistered();
+        boolean isEnabled = false;
+        List<SubscriptionInfo> subInfos = SubscriptionManager.from(context)
+                .getActiveSubscriptionInfoList();
+        if (subInfos != null) {
+            for (SubscriptionInfo subInfo : subInfos ) {
+                if (SubscriptionManager.isValidSubscriptionId(subInfo.getSubscriptionId())) {
+                    Resources subRes = SubscriptionManager.getResourcesForSubId(context,
+                            subInfo.getSubscriptionId());
+                    if (subRes.getBoolean(R.bool.config_enable_conference_dialer)) {
+                        TelephonyManager telephonyMgr = (TelephonyManager) context.
+                                getSystemService(Context.TELEPHONY_SERVICE);
+                        isEnabled = telephonyMgr.isImsRegistered();
+                        if (isEnabled) {
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        return false;
+        return isEnabled;
     }
 
     /**
