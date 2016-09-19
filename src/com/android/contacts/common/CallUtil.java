@@ -205,20 +205,12 @@ public class CallUtil {
     public static boolean isVideoEnabled(Context context) {
 
         final int enableVideoCall = getVideoCallingConfig(context);
-
         if (enableVideoCall == ENABLE_VIDEO_CALLING) {
-            Settings.System.putInt(context.getContentResolver(),
-                    CONFIG_VIDEO_CALLING,ENABLE_VIDEO_CALLING);
             return true;
         } else if(enableVideoCall == DISABLE_VIDEO_CALLING) {
-            Settings.System.putInt(context.getContentResolver(),
-                    CONFIG_VIDEO_CALLING,DISABLE_VIDEO_CALLING);
             return false;
         } else {
-            boolean hasVideoCap = hasVideoCapability(context);
-            Settings.System.putInt(context.getContentResolver(),
-                    CONFIG_VIDEO_CALLING,hasVideoCap?ENABLE_VIDEO_CALLING:DISABLE_VIDEO_CALLING);
-            return hasVideoCap;
+            return hasVideoCapability(context);
         }
     }
 
