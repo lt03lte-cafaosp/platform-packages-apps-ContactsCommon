@@ -234,6 +234,8 @@ public class ContactListItemView extends ViewGroup
     private ImageView mRCSCapabilityIcon;
     /* End add for RCS */
 
+    private int mDialButtonViewHeight;
+    private ImageView mDialButtonIcon;
     //adjust height for large font
     private int adjustHeight;
 
@@ -454,6 +456,14 @@ public class ContactListItemView extends ViewGroup
             mRcsCapabilityViewHeight = mRCSCapabilityIcon.getMeasuredHeight();
         }
         /* End add for RCS */
+
+        if (isVisible(mDialButtonIcon)) {
+            int rcsIconSize = ContactsCommonRcsUtil.dip2px(getContext(), 64);
+            mDialButtonIcon.measure(MeasureSpec.makeMeasureSpec(rcsIconSize,
+                    MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
+                            rcsIconSize, MeasureSpec.EXACTLY));
+            mDialButtonViewHeight = mDialButtonIcon.getMeasuredHeight();
+        }
 
         if (isVisible(mStatusView)) {
             // Presence and status are in a same row, so status will be affected by icon size.
@@ -714,6 +724,13 @@ public class ContactListItemView extends ViewGroup
             rightBound, rcsBottom);
         }
         /* End add for RCS */
+        if (isVisible(mDialButtonIcon)) {
+            int iconWidth = mDialButtonIcon.getMeasuredWidth();
+            int rcsTop = (bottom - top - mDialButtonViewHeight) / 2;
+            int rcsBottom = rcsTop + mDialButtonViewHeight;
+            mDialButtonIcon.layout(rightBound - iconWidth, rcsTop,
+            rightBound, rcsBottom);
+        }
     }
 
     @Override
@@ -1581,4 +1598,35 @@ public class ContactListItemView extends ViewGroup
         }
     }
     /* End add for RCS */
+
+    public void setDialButton(Drawable icon, boolean isVisible) {
+        if (icon != null && isVisible) {
+            if (mDialButtonIcon == null) {
+                mDialButtonIcon = new ImageView(getContext());
+                addView(mDialButtonIcon);
+                mDialButtonIcon.setImageDrawable(icon);
+                mDialButtonIcon.setScaleType(ScaleType.CENTER);
+            }
+            mDialButtonIcon.setVisibility(View.VISIBLE);
+        } else {
+            if (mDialButtonIcon != null) {
+                mDialButtonIcon.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * Returns the Dial Button , creating it if necessary.
+     */
+    public ImageView getDialButton() {
+        if (mDialButtonIcon == null) {
+            mDialButtonIcon = new ImageView(getContext());
+            mDialButtonIcon.setLayoutParams(getDefaultPhotoLayoutParams());
+            // Quick contact style used above will set a background - remove it
+            mDialButtonIcon.setBackground(null);
+            addView(mDialButtonIcon);
+        }
+        return mDialButtonIcon;
+    }
+
 }
