@@ -354,7 +354,7 @@ public class MoreContactUtils {
         return subscription;
     }
 
-    public static boolean isAnySimAviable(){
+    public static boolean isAnySimAvailable(){
         int SimState = TelephonyManager.SIM_STATE_UNKNOWN;
         if (MSimTelephonyManager.getDefault().isMultiSimEnabled()){
             SimState = MSimTelephonyManager.getDefault().getSimState(MSimConstants.SUB1);
@@ -1159,5 +1159,22 @@ public class MoreContactUtils {
             name = getSimAccountName(subscription);
         }
         return name;
+    }
+
+    /**
+     * Return true if IMS registered on any SIM
+     */
+    public static boolean isImsRegistered() {
+        boolean imsRegistered = SystemProperties.get(
+                "persist.radio.ims.registered", "0").equals("1");
+        return imsRegistered && isAnySimAvailable();
+    }
+
+    /**
+     * Return true if CSVT is supported
+     */
+    public static boolean isCSVTSupported() {
+        boolean csvtSupported = SystemProperties.getBoolean("persist.radio.csvt.enabled", false);
+        return csvtSupported && isAnySimAvailable();
     }
 }
