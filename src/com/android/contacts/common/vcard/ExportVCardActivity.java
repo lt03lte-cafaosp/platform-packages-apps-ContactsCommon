@@ -71,6 +71,7 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
 
     // String for storing error reason temporarily.
     private String mErrorReason;
+    private String selExport = "";
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -106,6 +107,10 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
             showErrorDialog();
         }
         // Continued to onServiceConnected()
+        Intent selExportIntent = getIntent();
+        if (selExportIntent != null) {
+            selExport = selExportIntent.getStringExtra("SelExport");
+        }
     }
 
     private boolean hasExportIntentHandler() {
@@ -136,6 +141,7 @@ public class ExportVCardActivity extends Activity implements ServiceConnection,
                     data != null && data.getData() != null) {
                 final Uri targetFileName = data.getData();
                 if (DEBUG) Log.d(LOG_TAG, "exporting to " + targetFileName);
+                mService.setSelExport(selExport);
                 final ExportRequest request = new ExportRequest(targetFileName);
                 // The connection object will call finish().
                 mService.handleExportRequest(request, new NotificationImportExportListener(
