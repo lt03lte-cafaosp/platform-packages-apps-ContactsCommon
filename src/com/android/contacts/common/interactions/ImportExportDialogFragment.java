@@ -624,11 +624,6 @@ public class ImportExportDialogFragment extends DialogFragment
                                     for (int j = 1; j < phoneCountInOneSimContact; j++) {
                                         if (arrayNumber.size() > 0 && emptyAnr-- > 0 ) {
                                             String s = arrayNumber.remove(0);
-                                            if (s.length() > MoreContactUtils
-                                                    .MAX_LENGTH_NUMBER_IN_SIM) {
-                                                s = s.substring(0,
-                                                        MoreContactUtils.MAX_LENGTH_NUMBER_IN_SIM);
-                                            }
                                             anrNum.append(s);
                                             anrNum.append(SimContactsConstants.ANR_SEP);
                                         }
@@ -638,11 +633,6 @@ public class ImportExportDialogFragment extends DialogFragment
                                     for (int j = 0; j < emailCountInOneSimContact; j++) {
                                         if (arrayEmail.size() > 0) {
                                             String s = arrayEmail.remove(0);
-                                            if (s.length() > MoreContactUtils
-                                                    .MAX_LENGTH_EMAIL_IN_SIM) {
-                                                s = s.substring(0,
-                                                        MoreContactUtils.MAX_LENGTH_EMAIL_IN_SIM);
-                                            }
                                             email.append(s);
                                             email.append(SimContactsConstants.EMAIL_SEP);
                                         }
@@ -959,8 +949,13 @@ public class ImportExportDialogFragment extends DialogFragment
             case R.string.export_to_sim: {
                 String[] items = new String[tm.getPhoneCount()];
                 for (int i = 0; i < items.length; i++) {
-                items[i] = getString(R.string.export_to_sim) + ": "
-                        + MoreContactUtils.getAcount(mActivity, i).name;
+                    items[i] = getString(R.string.export_to_sim) + ": "
+                            + MoreContactUtils.getAcount(mActivity, i).name;
+                    String customLabel = MoreContactUtils.
+                            getCustomOperatorLabel(mActivity.getApplicationContext(), i);
+                    if(!TextUtils.isEmpty(customLabel)) {
+                        items[i] = customLabel;
+                    }
                 }
                 mExportSub = SimContactsConstants.SLOT1;
                 ExportToSimSelectListener listener = new ExportToSimSelectListener();
@@ -982,6 +977,11 @@ public class ImportExportDialogFragment extends DialogFragment
         for (int i = 0; i < items.length; i++) {
             items[i] = getString(R.string.import_from_sim) + ": "
                     + MoreContactUtils.getAcount(mActivity, i).name;
+            String customLabel = MoreContactUtils.
+                    getCustomOperatorLabel(mActivity.getApplicationContext(), i);
+            if(!TextUtils.isEmpty(customLabel)) {
+                items[i] = customLabel;
+            }
         }
         new AlertDialog.Builder(mActivity)
                 .setTitle(R.string.import_from_sim)

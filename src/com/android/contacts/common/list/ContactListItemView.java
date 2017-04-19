@@ -252,6 +252,9 @@ public class ContactListItemView extends ViewGroup
     /** A helper used to highlight a prefix in a text field. */
     private final TextHighlighter mTextHighlighter;
     private CharSequence mUnknownNameText;
+    private int mDialButtonViewHeight;
+    private ImageView mDialButtonIcon;
+
     private int mPosition;
 
     public ContactListItemView(Context context) {
@@ -451,6 +454,10 @@ public class ContactListItemView extends ViewGroup
             effectiveWidth -= (mVideoCallIconSize + mVideoCallIconMargin);
         }
 
+        if (isVisible(mDialButtonIcon)) {
+            effectiveWidth -= (mVideoCallIconSize + mVideoCallIconMargin);
+        }
+
         // Go over all visible text views and measure actual width of each of them.
         // Also calculate their heights to get the total height for this entire view.
 
@@ -546,6 +553,13 @@ public class ContactListItemView extends ViewGroup
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             mNameTextViewHeight =
                     Math.max(mNameTextViewHeight, mWorkProfileIcon.getMeasuredHeight());
+        }
+
+        if (isVisible(mDialButtonIcon)) {
+            mDialButtonIcon.measure(MeasureSpec.makeMeasureSpec(mVideoCallIconSize,
+                    MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
+                    mVideoCallIconSize, MeasureSpec.EXACTLY));
+            mDialButtonViewHeight = mDialButtonIcon.getMeasuredHeight();
         }
 
         if (isVisible(mStatusView)) {
@@ -853,6 +867,14 @@ public class ContactListItemView extends ViewGroup
                     textTopBound,
                     rightBound,
                     textTopBound + mSnippetTextViewHeight);
+        }
+
+        if (isVisible(mDialButtonIcon)) {
+            int iconWidth = mDialButtonIcon.getMeasuredWidth();
+            int rcsTop = (bottom - top - mDialButtonViewHeight) / 2;
+            int rcsBottom = rcsTop + mDialButtonViewHeight;
+            mDialButtonIcon.layout(rightBound - iconWidth, rcsTop,
+            rightBound, rcsBottom);
         }
     }
 
@@ -1775,4 +1797,34 @@ public class ContactListItemView extends ViewGroup
         return localX >= mLeftOffset && localX < mRightOffset
                 && localY >= 0 && localY < (getBottom() - getTop());
     }
+    public void setDialButton(Drawable icon, boolean isVisible) {
+        if (icon != null && isVisible) {
+            if (mDialButtonIcon == null) {
+                mDialButtonIcon = new ImageView(getContext());
+                addView(mDialButtonIcon);
+                mDialButtonIcon.setImageDrawable(icon);
+                mDialButtonIcon.setScaleType(ScaleType.CENTER);
+            }
+            mDialButtonIcon.setVisibility(View.VISIBLE);
+        } else {
+            if (mDialButtonIcon != null) {
+                mDialButtonIcon.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * Returns the Dial Button , creating it if necessary.
+     */
+    public ImageView getDialButton() {
+        if (mDialButtonIcon == null) {
+            mDialButtonIcon = new ImageView(getContext());
+            mDialButtonIcon.setLayoutParams(getDefaultPhotoLayoutParams());
+            // Quick contact style used above will set a background - remove it
+            mDialButtonIcon.setBackground(null);
+            addView(mDialButtonIcon);
+        }
+        return mDialButtonIcon;
+    }
+
 }

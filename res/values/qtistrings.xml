@@ -37,4 +37,7 @@
     <string name="video_call_dialog_checkbox">"Don't remind me again"</string>
     <string name="video_call_message_on"> When using the Verizon Wireless 4G LTE network,the voice portion of a video call will appear on your bill as mobile-to-mobile voice usage, and the video portion will be billed as data. When video calling is turned on, other can see that your phone has video calling. </string>
     <string name="video_call_message_off"> Your phone will not be able to make or receive video calls when you turn this setting off. </string>
+    <!-- Enrich call  -->
+    <!-- Description string for an action button to initiate a enrich call. -->
+    <string name="description_enrich_call">Make Rich Call</string>
 </resources>
